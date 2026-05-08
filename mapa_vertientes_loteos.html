@@ -9,7 +9,6 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Segoe UI', Arial, sans-serif; background: #1a1a2e; color: #eee; height: 100vh; display: flex; flex-direction: column; }
-
   #header {
     background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
     padding: 12px 20px;
@@ -21,60 +20,35 @@
   }
   #header h1 { font-size: 16px; font-weight: 700; letter-spacing: 0.5px; color: #fff; }
   #header span { font-size: 12px; color: #aaa; }
-
   #map { flex: 1; }
-
-  /* Etiquetas de barrios */
-  .barrio-label {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-  .barrio-label div {
-    font-size: 10.5px;
-    font-weight: 700;
-    color: #111;
-    text-shadow:
-      -1px -1px 0 #fff,
-       1px -1px 0 #fff,
-      -1px  1px 0 #fff,
-       1px  1px 0 #fff,
-       0px  2px 3px rgba(0,0,0,0.4);
-    text-align: center;
-    line-height: 1.2;
-    white-space: nowrap;
-    pointer-events: none;
-    letter-spacing: 0.3px;
-  }
 
   /* Leyenda */
   .legend {
-    background: rgba(255,255,255,0.96);
+    background: rgba(15,30,60,0.95);
     backdrop-filter: blur(8px);
-    border: 1px solid rgba(0,0,0,0.12);
+    border: 1px solid rgba(255,255,255,0.15);
     border-radius: 10px;
     padding: 14px 16px;
-    min-width: 215px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.18);
-    color: #222;
+    min-width: 210px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
   }
   .legend h4 {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
-    color: #222;
+    color: #fff;
     margin-bottom: 10px;
-    border-bottom: 1px solid rgba(0,0,0,0.12);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
     padding-bottom: 6px;
     text-transform: uppercase;
     letter-spacing: 0.8px;
   }
-  .legend-section { margin-bottom: 10px; }
+  .legend-section { margin-bottom: 12px; }
   .legend-section-title {
     font-size: 10px;
-    color: #777;
+    color: #9ab;
     text-transform: uppercase;
     letter-spacing: 1px;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
     font-weight: 600;
   }
   .legend-item {
@@ -83,85 +57,46 @@
     gap: 8px;
     margin-bottom: 5px;
     font-size: 12px;
-    color: #333;
+    color: #ddd;
     cursor: pointer;
     padding: 3px 4px;
     border-radius: 4px;
     transition: background 0.2s;
-    user-select: none;
   }
-  .legend-item:hover { background: rgba(0,0,0,0.06); }
-  .legend-item.inactive { opacity: 0.35; }
+  .legend-item:hover { background: rgba(255,255,255,0.08); }
+  .legend-item.inactive { opacity: 0.4; }
   .swatch {
     width: 18px; height: 18px;
     border-radius: 3px;
-    border: 1px solid rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
     flex-shrink: 0;
   }
   .swatch-circle {
-    width: 13px; height: 13px;
+    width: 14px; height: 14px;
     border-radius: 50%;
-    border: 2.5px solid #fff;
-    box-shadow: 0 0 0 1.5px #38bdf8;
+    border: 2px solid #fff;
     flex-shrink: 0;
   }
   .swatch-line {
     width: 22px; height: 4px;
     border-radius: 2px;
     flex-shrink: 0;
-    border-top: 3px dashed #a78bfa;
-    background: transparent;
   }
-
-  /* Panel de capas base */
-  .basemap-control {
-    background: rgba(255,255,255,0.96);
-    border: 1px solid rgba(0,0,0,0.12);
-    border-radius: 10px;
-    padding: 10px 14px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.18);
-    color: #222;
-    font-size: 12px;
-  }
-  .basemap-control h4 {
-    font-size: 10px;
-    font-weight: 700;
-    color: #777;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 7px;
-  }
-  .basemap-btn {
-    display: block;
-    width: 100%;
-    padding: 5px 10px;
-    margin-bottom: 4px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background: #f5f5f5;
-    cursor: pointer;
-    font-size: 11px;
-    color: #333;
-    text-align: left;
-    transition: all 0.2s;
-  }
-  .basemap-btn:hover { background: #e8e8e8; }
-  .basemap-btn.active { background: #0f3460; color: #fff; border-color: #0f3460; font-weight: 700; }
 
   /* Stats */
   .stats-box {
-    background: rgba(255,255,255,0.96);
-    border: 1px solid rgba(0,0,0,0.12);
+    background: rgba(15,30,60,0.95);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.15);
     border-radius: 10px;
     padding: 10px 14px;
-    min-width: 200px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.18);
-    color: #222;
+    min-width: 190px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
   }
   .stats-box h4 {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
-    color: #777;
+    color: #9ab;
     text-transform: uppercase;
     letter-spacing: 0.8px;
     margin-bottom: 8px;
@@ -173,16 +108,20 @@
     margin-bottom: 4px;
     font-size: 12px;
   }
-  .stat-label { color: #555; display:flex; align-items:center; gap:5px; }
-  .stat-val { font-weight: 700; color: #111; }
-  .stat-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink:0; }
+  .stat-label { color: #bbb; }
+  .stat-val { font-weight: 700; color: #fff; }
+  .stat-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; display: inline-block; }
 
   /* Popup */
   .leaflet-popup-content-wrapper {
+    background: rgba(10,20,45,0.97) !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
     border-radius: 10px !important;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.18) !important;
+    color: #eee !important;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.6) !important;
   }
-  .popup-title { font-size: 14px; font-weight: 700; color: #111; margin-bottom: 6px; }
+  .leaflet-popup-tip { background: rgba(10,20,45,0.97) !important; }
+  .popup-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 6px; }
   .popup-badge {
     display: inline-block;
     padding: 2px 10px;
@@ -191,16 +130,8 @@
     font-weight: 700;
     margin-bottom: 8px;
   }
-  .popup-row { font-size: 12px; color: #666; margin-bottom: 3px; }
-  .popup-row span { color: #222; font-weight: 600; }
-  a.popup-link {
-    display: inline-block;
-    margin-top: 4px;
-    font-size: 11px;
-    color: #2563eb;
-    text-decoration: none;
-  }
-  a.popup-link:hover { text-decoration: underline; }
+  .popup-row { font-size: 12px; color: #bbb; margin-bottom: 3px; }
+  .popup-row span { color: #eee; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -216,7 +147,7 @@ const LOTEOS_DATA = {"type": "FeatureCollection", "name": "loteos_vertientes", "
 const POZOS_DATA = {"type": "FeatureCollection", "name": "pozos", "crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:OGC:1.3:CRS84"}}, "features": [{"type": "Feature", "properties": {"id": 1, "nombre": "Costa Esperanza", "\u00e1rea de i": null, "perfil": "https://drive.google.com/file/d/1H7CkJNi09_10SEF-KBNkmtmkkb2j8KGh/view?usp=drive_link", "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3sicGFyYW1zIjp7ImVudGl0eUlkIjp7ImVudGl0eVR5cGUiOiJERVZJQ0UiLCJpZCI6IjAwMzk2NmQwLTJmZmMtMTFlZS1iOGFiLWM1Zjg5YjUzYjNlYyJ9LCJlbnRpdHlOYW1lIjoiMjAgR0FaQ09OIn0sImlkIjoiZGVmYXVsd"}, "geometry": {"type": "Point", "coordinates": [-68.9423800697984, -33.186690199799536]}}, {"type": "Feature", "properties": {"id": 2, "nombre": "Agrelo", "\u00e1rea de i": null, "perfil": null, "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3siaWQiOiJkZWZhdWx0IiwicGFyYW1zIjp7fX0seyJpZCI6ImVzdGFjaW9uIiwicGFyYW1zIjp7ImVudGl0eUlkIjp7ImlkIjoiZmZkNWVhMTAtMmZmYi0xMWVlLWI4YWItYzVmODliNTNiM2VjIiwiZW50aXR5VHlwZSI6IkRFV"}, "geometry": {"type": "Point", "coordinates": [-68.89052140211464, -33.12821455872628]}}, {"type": "Feature", "properties": {"id": 3, "nombre": "Tahan", "\u00e1rea de i": null, "perfil": null, "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3siaWQiOiJkZWZhdWx0IiwicGFyYW1zIjp7fX0seyJpZCI6ImVzdGFjaW9uIiwicGFyYW1zIjp7ImVudGl0eUlkIjp7ImlkIjoiOTg2N2NhZTAtNjJhYy0xMWVlLTgyNmItOGYxZTViNWY5NDQzIiwiZW50aXR5VHlwZSI6IkRFV"}, "geometry": {"type": "Point", "coordinates": [-68.88173377891013, -33.08992601956614]}}, {"type": "Feature", "properties": {"id": 4, "nombre": "San Cayetano", "\u00e1rea de i": null, "perfil": null, "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3siaWQiOiJkZWZhdWx0IiwicGFyYW1zIjp7fX0seyJpZCI6ImVzdGFjaW9uIiwicGFyYW1zIjp7ImVudGl0eUlkIjp7ImlkIjoiZmZmNWNlMjAtMmZmYi0xMWVlLWI4YWItYzVmODliNTNiM2VjIiwiZW50aXR5VHlwZSI6IkRFV"}, "geometry": {"type": "Point", "coordinates": [-68.88607457513723, -33.0868988093734]}}, {"type": "Feature", "properties": {"id": 8, "nombre": "El Encuentro", "\u00e1rea de i": null, "perfil": "https://drive.google.com/file/d/18Ua7l3rtd3KRc6fGz-0Ve2LCyOtnC219/view?usp=drive_link", "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3siaWQiOiJkZWZhdWx0IiwicGFyYW1zIjp7fX0seyJpZCI6ImVzdGFjaW9uIiwicGFyYW1zIjp7ImVudGl0eUlkIjp7ImlkIjoiZmZlNjY0ZDAtMmZmYi0xMWVlLWI4YWItYzVmODliNTNiM2VjIiwiZW50aXR5VHlwZSI6IkRFV"}, "geometry": {"type": "Point", "coordinates": [-68.92431815432106, -33.07230811004031]}}, {"type": "Feature", "properties": {"id": 9, "nombre": "Costa Flores", "\u00e1rea de i": null, "perfil": null, "telemetria": null}, "geometry": {"type": "Point", "coordinates": [-68.92671801610994, -33.06985442340275]}}, {"type": "Feature", "properties": {"id": 10, "nombre": "Camping TV", "\u00e1rea de i": null, "perfil": "https://drive.google.com/file/d/1RHYfhmFFwLmgJpGnXPvgkLKREf8Q2Rpc/view?usp=drive_link", "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3siaWQiOiJkZWZhdWx0IiwicGFyYW1zIjp7fX0seyJpZCI6ImVzdGFjaW9uIiwicGFyYW1zIjp7ImVudGl0eUlkIjp7ImlkIjoiMDAyOTYxNDAtMmZmYy0xMWVlLWI4YWItYzVmODliNTNiM2VjIiwiZW50aXR5VHlwZSI6IkRFV"}, "geometry": {"type": "Point", "coordinates": [-68.89590488869285, -33.06397111117923]}}, {"type": "Feature", "properties": {"id": 11, "nombre": "Los Tarcos", "\u00e1rea de i": null, "perfil": null, "telemetria": null}, "geometry": {"type": "Point", "coordinates": [-68.89120380490027, -33.05622294329019]}}, {"type": "Feature", "properties": {"id": 12, "nombre": "Rivera", "\u00e1rea de i": null, "perfil": "https://drive.google.com/file/d/1oLzlNK8PdR_NkdUOJh4L-qRoGnpo4VXQ/view?usp=drive_link", "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3sicGFyYW1zIjp7ImVudGl0eUlkIjp7ImVudGl0eVR5cGUiOiJERVZJQ0UiLCJpZCI6IjAwMzk2NmQwLTJmZmMtMTFlZS1iOGFiLWM1Zjg5YjUzYjNlYyJ9LCJlbnRpdHlOYW1lIjoiMjAgR0FaQ09OIn0sImlkIjoiZGVmYXVsd"}, "geometry": {"type": "Point", "coordinates": [-68.8954729369714, -33.053526673931884]}}, {"type": "Feature", "properties": {"id": 13, "nombre": "PIM", "\u00e1rea de i": null, "perfil": null, "telemetria": null}, "geometry": {"type": "Point", "coordinates": [-68.98145341264127, -33.0771512047875]}}, {"type": "Feature", "properties": {"id": 14, "nombre": "Laugero", "\u00e1rea de i": null, "perfil": null, "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3sicGFyYW1zIjp7ImVudGl0eUlkIjp7ImVudGl0eVR5cGUiOiJERVZJQ0UiLCJpZCI6IjAwMzk2NmQwLTJmZmMtMTFlZS1iOGFiLWM1Zjg5YjUzYjNlYyJ9LCJlbnRpdHlOYW1lIjoiMjAgR0FaQ09OIn0sImlkIjoiZGVmYXVsd"}, "geometry": {"type": "Point", "coordinates": [-68.89576957904991, -33.04149504550471]}}, {"type": "Feature", "properties": {"id": 15, "nombre": "Natania 45", "\u00e1rea de i": null, "perfil": null, "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3sicGFyYW1zIjp7ImVudGl0eUlkIjp7ImVudGl0eVR5cGUiOiJERVZJQ0UiLCJpZCI6IjAwMzk2NmQwLTJmZmMtMTFlZS1iOGFiLWM1Zjg5YjUzYjNlYyJ9LCJlbnRpdHlOYW1lIjoiMjAgR0FaQ09OIn0sImlkIjoiZGVmYXVsd"}, "geometry": {"type": "Point", "coordinates": [-68.85982373560701, -33.03896530850697]}}, {"type": "Feature", "properties": {"id": 16, "nombre": "Pinar", "\u00e1rea de i": null, "perfil": null, "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3sicGFyYW1zIjp7ImVudGl0eUlkIjp7ImVudGl0eVR5cGUiOiJERVZJQ0UiLCJpZCI6IjAwMzk2NmQwLTJmZmMtMTFlZS1iOGFiLWM1Zjg5YjUzYjNlYyJ9LCJlbnRpdHlOYW1lIjoiMjAgR0FaQ09OIn0sImlkIjoiZGVmYXVsd"}, "geometry": {"type": "Point", "coordinates": [-68.92825228876555, -33.03337961071828]}}, {"type": "Feature", "properties": {"id": 17, "nombre": "Guardia Vieja", "\u00e1rea de i": null, "perfil": null, "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3siaWQiOiJkZWZhdWx0IiwicGFyYW1zIjp7fX0seyJpZCI6ImVzdGFjaW9uIiwicGFyYW1zIjp7ImVudGl0eUlkIjp7ImlkIjoiMDAxNDA0ODAtMmZmYy0xMWVlLWI4YWItYzVmODliNTNiM2VjIiwiZW50aXR5VHlwZSI6IkRFV"}, "geometry": {"type": "Point", "coordinates": [-68.90893351181936, -33.01861545098322]}}, {"type": "Feature", "properties": {"id": 18, "nombre": "Guardia Vieja y Almirante Brown", "\u00e1rea de i": null, "perfil": "https://drive.google.com/file/d/1srxYUoYBAoo2smX23ZpD-kJox8tw_-72/view?usp=drive_link", "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3siaWQiOiJkZWZhdWx0IiwicGFyYW1zIjp7fX0seyJpZCI6ImVzdGFjaW9uIiwicGFyYW1zIjp7ImVudGl0eUlkIjp7ImlkIjoiMDAwN2NmODEtMmZmYy0xMWVlLWI4YWItYzVmODliNTNiM2VjIiwiZW50aXR5VHlwZSI6IkRFV"}, "geometry": {"type": "Point", "coordinates": [-68.90924067315821, -33.00994112950823]}}, {"type": "Feature", "properties": {"id": 20, "nombre": "Rinc\u00f3n Viamonte", "\u00e1rea de i": null, "perfil": "https://drive.google.com/file/d/1KLEbeVq7tdROwCJgMq9k21VGaJ14PSUt/view?usp=drive_link", "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3siaWQiOiJkZWZhdWx0IiwicGFyYW1zIjp7fX0seyJpZCI6ImVzdGFjaW9uIiwicGFyYW1zIjp7ImVudGl0eUlkIjp7ImlkIjoiZmZmNTMxZTAtMmZmYi0xMWVlLWI4YWItYzVmODliNTNiM2VjIiwiZW50aXR5VHlwZSI6IkRFV"}, "geometry": {"type": "Point", "coordinates": [-68.8924442071668, -33.00940649739218]}}, {"type": "Feature", "properties": {"id": 21, "nombre": "Monteverdi", "\u00e1rea de i": null, "perfil": "https://drive.google.com/file/d/1DeWZmZei_YxC6LcREevcyBdKul7L7mXN/view?usp=drive_link", "telemetria": null}, "geometry": {"type": "Point", "coordinates": [-68.84917490655852, -33.012234233165884]}}, {"type": "Feature", "properties": {"id": 22, "nombre": "Ruta 60", "\u00e1rea de i": "Milcayac", "perfil": null, "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3siaWQiOiJkZWZhdWx0IiwicGFyYW1zIjp7fX0seyJpZCI6ImVzdGFjaW9uIiwicGFyYW1zIjp7ImVudGl0eUlkIjp7ImlkIjoiZmZmYzBmYjAtMmZmYi0xMWVlLWI4YWItYzVmODliNTNiM2VjIiwiZW50aXR5VHlwZSI6IkRFV"}, "geometry": {"type": "Point", "coordinates": [-68.84117580967197, -33.00538329614267]}}, {"type": "Feature", "properties": {"id": 23, "nombre": "Kristich", "\u00e1rea de i": null, "perfil": null, "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3sicGFyYW1zIjp7ImVudGl0eUlkIjp7ImVudGl0eVR5cGUiOiJERVZJQ0UiLCJpZCI6IjAwMzk2NmQwLTJmZmMtMTFlZS1iOGFiLWM1Zjg5YjUzYjNlYyJ9LCJlbnRpdHlOYW1lIjoiMjAgR0FaQ09OIn0sImlkIjoiZGVmYXVsd"}, "geometry": {"type": "Point", "coordinates": [-68.86017253192746, -32.9963271032175]}}, {"type": "Feature", "properties": {"id": 24, "nombre": "Castro Barros", "\u00e1rea de i": null, "perfil": "https://drive.google.com/file/d/1yCfNM4kYLV7mWggvzhuYfCG2xSFHmux-/view?usp=drive_link", "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3siaWQiOiJkZWZhdWx0IiwicGFyYW1zIjp7fX0seyJpZCI6ImVzdGFjaW9uIiwicGFyYW1zIjp7ImVudGl0eUlkIjp7ImlkIjoiMDAwODQ0YjAtMmZmYy0xMWVlLWI4YWItYzVmODliNTNiM2VjIiwiZW50aXR5VHlwZSI6IkRFV"}, "geometry": {"type": "Point", "coordinates": [-68.84976622775791, -32.99130079518554]}}, {"type": "Feature", "properties": {"id": 5, "nombre": "Terrada Sur", "\u00e1rea de i": null, "perfil": "https://drive.google.com/file/d/1AMk5yONvza39xqaruuSe4lbOsxjhtAIC/view?usp=drive_link", "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec"}, "geometry": {"type": "Point", "coordinates": [-68.8705693334547, -33.08020377384288]}}, {"type": "Feature", "properties": {"id": 6, "nombre": "Giannacari", "\u00e1rea de i": null, "perfil": "https://drive.google.com/file/d/1DR-5AAhbf_bHlX3aGep19hGdfjLdoZZl/view?usp=drive_link", "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3sicGFyYW1zIjp7ImVudGl0eUlkIjp7ImVudGl0eVR5cGUiOiJERVZJQ0UiLCJpZCI6IjAwMzk2NmQwLTJmZmMtMTFlZS1iOGFiLWM1Zjg5YjUzYjNlYyJ9LCJlbnRpdHlOYW1lIjoiMjAgR0FaQ09OIn0sImlkIjoiZGVmYXVsd"}, "geometry": {"type": "Point", "coordinates": [-68.86874664272462, -33.073440993805114]}}, {"type": "Feature", "properties": {"id": 25, "nombre": "Liceo", "\u00e1rea de i": null, "perfil": "https://drive.google.com/file/d/1aKGdLq__4uAf5pdTlCsQklG-uZaOja1o/view?usp=drive_link", "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3siaWQiOiJkZWZhdWx0IiwicGFyYW1zIjp7fX0seyJpZCI6ImVzdGFjaW9uIiwicGFyYW1zIjp7ImVudGl0eUlkIjp7ImlkIjoiMDAyNDdmNDAtMmZmYy0xMWVlLWI4YWItYzVmODliNTNiM2VjIiwiZW50aXR5VHlwZSI6IkRFV"}, "geometry": {"type": "Point", "coordinates": [-68.82745392962671, -32.98875878538487]}}, {"type": "Feature", "properties": {"id": 26, "nombre": "Ciudad Deportiva", "\u00e1rea de i": null, "perfil": null, "telemetria": null}, "geometry": {"type": "Point", "coordinates": [-68.84248266773704, -32.98553869956001]}}, {"type": "Feature", "properties": {"id": 27, "nombre": "Carbometal", "\u00e1rea de i": null, "perfil": "https://drive.google.com/file/d/1qYj8mtcVdV4l6hitiRBocDm5owiqMt-L/view?usp=drive_link", "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3siaWQiOiJkZWZhdWx0IiwicGFyYW1zIjp7fX0seyJpZCI6ImVzdGFjaW9uIiwicGFyYW1zIjp7ImVudGl0eUlkIjp7ImlkIjoiMDAyOWQ2NzAtMmZmYy0xMWVlLWI4YWItYzVmODliNTNiM2VjIiwiZW50aXR5VHlwZSI6IkRFV"}, "geometry": {"type": "Point", "coordinates": [-68.85927317737918, -32.98039467963742]}}, {"type": "Feature", "properties": {"id": 28, "nombre": "Lar", "\u00e1rea de i": null, "perfil": null, "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3sicGFyYW1zIjp7ImVudGl0eUlkIjp7ImVudGl0eVR5cGUiOiJERVZJQ0UiLCJpZCI6IjAwMzk2NmQwLTJmZmMtMTFlZS1iOGFiLWM1Zjg5YjUzYjNlYyJ9LCJlbnRpdHlOYW1lIjoiMjAgR0FaQ09OIn0sImlkIjoiZGVmYXVsd"}, "geometry": {"type": "Point", "coordinates": [-68.831550816485, -32.9781234325017]}}, {"type": "Feature", "properties": {"id": 29, "nombre": "Paso y San Martin", "\u00e1rea de i": "B\u00b0Samontano,B\u00b0 mauricio, balcones de carrodilla,altos de carrodilla , EPA, LOYOLA,LOS OLIVOS, QUINTA GABRIELI, SOLARES DEL POPULIN , EL PORTILLO , AGUA Y ENERGIA", "perfil": "https://drive.google.com/file/d/1gHSksGF1SMNU6-TOXuvj_6HZyl9UBQOZ/view?usp=drive_link", "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3siaWQiOiJkZWZhdWx0IiwicGFyYW1zIjp7fX0seyJpZCI6ImVzdGFjaW9uIiwicGFyYW1zIjp7ImVudGl0eUlkIjp7ImlkIjoiMDAxMmYzMTAtMmZmYy0xMWVlLWI4YWItYzVmODliNTNiM2VjIiwiZW50aXR5VHlwZSI6IkRFV"}, "geometry": {"type": "Point", "coordinates": [-68.85378096847867, -32.96527725466859]}}, {"type": "Feature", "properties": {"id": 30, "nombre": "Monta\u00f1eses", "\u00e1rea de i": null, "perfil": "https://drive.google.com/file/d/1L3v63HBmKZm93LHYww8JYH-D2RZEij5B/view?usp=drive_link", "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec?state=W3siaWQiOiJkZWZhdWx0IiwicGFyYW1zIjp7fX0seyJpZCI6ImVzdGFjaW9uIiwicGFyYW1zIjp7ImVudGl0eUlkIjp7ImlkIjoiZmZmYzM2YzEtMmZmYi0xMWVlLWI4YWItYzVmODliNTNiM2VjIiwiZW50aXR5VHlwZSI6IkRFV"}, "geometry": {"type": "Point", "coordinates": [-69.03595438647802, -33.03623146099255]}}, {"type": "Feature", "properties": {"id": 31, "nombre": "Altos de la Crucesita", "\u00e1rea de i": null, "perfil": "https://drive.google.com/file/d/1LsCEV69ldeoDlagQPcdCvMHpN3wf9fAy/view?usp=drive_link", "telemetria": null}, "geometry": {"type": "Point", "coordinates": [-69.00887112489178, -33.035600632833756]}}, {"type": "Feature", "properties": {"id": 19, "nombre": "Cordon del Plata", "\u00e1rea de i": null, "perfil": "https://drive.google.com/file/d/1zvoqbcdaeLvTCJXT3y6tJ4P_tRxRcIy8/view?usp=drive_link", "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec"}, "geometry": {"type": "Point", "coordinates": [-68.88973811814787, -33.01417273851715]}}, {"type": "Feature", "properties": {"id": 7, "nombre": "Coni", "\u00e1rea de i": null, "perfil": "https://drive.google.com/file/d/1ivhHchaLYMzaJ46DaJ0KRs2WrX-UR-Os/view?usp=drive_link", "telemetria": "https://mitelemetria.com.ar/dashboard/b40d51a0-2023-11ee-b8ab-c5f89b53b3ec"}, "geometry": {"type": "Point", "coordinates": [-68.88844535910458, -33.07497583542439]}}]};
 const AREA_DATA = {"type": "FeatureCollection", "name": "area servida_al", "crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:EPSG::22172"}}, "features": [{"type": "Feature", "properties": {"id": 5}, "geometry": {"type": "MultiLineString", "coordinates": [[[-68.94534590217678, -33.186187612764066], [-68.94548658327736, -33.18701874296113], [-68.93973731936869, -33.18777931864112], [-68.93834746717435, -33.18498014209317], [-68.94534590217678, -33.186187612764066]]]}}, {"type": "Feature", "properties": {"id": 2}, "geometry": {"type": "MultiLineString", "coordinates": [[[-68.97825423394082, -33.035127677948786], [-68.98154744525459, -33.03421837806804], [-68.98317558493885, -33.03376070253249], [-68.9836131433938, -33.03420546699165], [-68.98796330456251, -33.032964465970416], [-68.9884876500739, -33.033203147261816], [-68.9884512262653, -33.033375259161026], [-68.98896901903088, -33.033621390741125], [-68.9889463016219, -33.03367096929259], [-68.98938319486845, -33.03387955497571], [-68.98960842355486, -33.03393456511431], [-68.9898384944134, -33.03402531211193], [-68.99005419319877, -33.034310760997485], [-68.99065054093231, -33.03509809479106], [-68.9906629957882, -33.034987945675965], [-68.9929852958516, -33.037418507225965], [-68.9930295797363, -33.03646366105055], [-68.99326859797823, -33.03536350224971], [-68.99571038687871, -33.03568113720554], [-69.00095663702204, -33.03637727085597], [-69.00100941432723, -33.036816524123786], [-69.00152695959162, -33.036808556404594], [-69.00260129756084, -33.03674550276363], [-69.00302820429552, -33.03673328720329], [-69.00299615925877, -33.03667947801287], [-69.00304848897818, -33.03666579748381], [-69.00310442626069, -33.03662171878454], [-69.00328180982868, -33.03643979105162], [-69.00349329508596, -33.0363493249628], [-69.0040806221113, -33.0359559728884], [-69.0041077010389, -33.036229554550424], [-69.00396696232299, -33.03646666451274], [-69.0040092853972, -33.036868344381844], [-69.00664097868057, -33.03677547759114], [-69.00702082057454, -33.03544225846834], [-69.00765388980479, -33.03536666149154], [-69.00761371068053, -33.03517130230356], [-69.00830197019708, -33.03399782694623], [-69.0100333855429, -33.030158920355554], [-69.01012909204648, -33.02932017251677], [-69.00123340960015, -33.03003763629526], [-69.00123139674486, -33.02771793837063], [-69.00164414578055, -33.02734149359554], [-69.01241364964476, -33.026472848098045], [-69.0124293296511, -33.02626741935363], [-69.01410462196318, -33.0256994345937], [-69.01409969197097, -33.02550459648241], [-69.01608377145911, -33.025051487078784], [-69.01572408228127, -33.029150338215366], [-69.0158416989443, -33.033598263759636], [-69.01571058811327, -33.03453866512502], [-69.01546671807345, -33.03535046198616], [-69.01549191489464, -33.038123599091726], [-69.01549191489464, -33.038123599091726], [-69.018868234134, -33.03836166217626], [-69.01909969773389, -33.037472920159715], [-69.01993319017804, -33.037608739930626], [-69.01973904024263, -33.03845472584929], [-69.02124024865677, -33.03825042157836], [-69.02243857873516, -33.03807766289567], [-69.02248777061494, -33.037331239529706], [-69.0232551027831, -33.03729009353119], [-69.02326200777598, -33.037100686610536], [-69.02448599310463, -33.03717561849427], [-69.0288254521136, -33.03740339691277], [-69.02891089409268, -33.03754693744605], [-69.02870544450526, -33.03766871167499], [-69.02901578747614, -33.03786202498482], [-69.02939966368541, -33.037511906241136], [-69.03009191067659, -33.03704964985682], [-69.03038361116421, -33.03701692332491], [-69.03079472303449, -33.03706851987879], [-69.03062079408826, -33.03730000645141], [-69.03180072513612, -33.036591837771205], [-69.0326759145206, -33.036249298300824], [-69.03301722599345, -33.03618061287407], [-69.0340540326437, -33.03795866864809], [-69.0355316185309, -33.03753549228361], [-69.03525406266843, -33.03604839906329], [-69.03464568866121, -33.03177115804663], [-69.03541624441377, -33.031641012786466], [-69.03564546627136, -33.03306536337524], [-69.03602514513997, -33.03410112678605], [-69.03630273529063, -33.03565848147871], [-69.03631688488511, -33.03624426806888], [-69.03624331238748, -33.0377361028819], [-69.03595271314728, -33.03781536269627], [-69.03598236726718, -33.038941871634435], [-69.03584401149759, -33.041104195140434], [-69.03498486664466, -33.041288184113256], [-69.03426408186229, -33.04151012266349], [-69.03417622877376, -33.041507144195414], [-69.03417215116066, -33.04155462550076], [-69.03408763983694, -33.04161157651536], [-69.0337798255683, -33.04161370342188], [-69.03342253348194, -33.0417012148398], [-69.03323900677417, -33.041798442353404], [-69.03185904447722, -33.042224830933456], [-69.03105946960942, -33.04258746140548], [-69.03051760265588, -33.04250033016028], [-69.03019682620928, -33.042333682963815], [-69.02859629244298, -33.04188433099203], [-69.02808712325762, -33.041742508324894], [-69.02784726739405, -33.041758107799694], [-69.02744331715809, -33.04169054313354], [-69.02731210401981, -33.04172107455262], [-69.02700484128889, -33.041613389955714], [-69.02643052518226, -33.041359604199755], [-69.02629236818147, -33.04123386831943], [-69.02586354668794, -33.04172119569966], [-69.02448605456146, -33.04183529968653], [-69.0216666566524, -33.04046674766182], [-69.02110541447608, -33.0403103906166], [-69.0207473073473, -33.04006181326726], [-69.02060339718899, -33.03977597247518], [-69.02036729190517, -33.03951543436322], [-69.01975129207808, -33.03915977279113], [-69.01693346480894, -33.0385720403033], [-69.0148840761281, -33.03844733296839], [-69.01481925827203, -33.039009699551], [-69.01203266666415, -33.03905295737302], [-69.01115310979228, -33.03928188897209], [-69.00951639699747, -33.04000288737954], [-69.00954944792697, -33.04013981335209], [-69.0079754428682, -33.040806485309695], [-69.00640681875669, -33.041108201557584], [-69.00325318186643, -33.04148764168518], [-69.00125563981823, -33.041461861846365], [-68.99992721706158, -33.04099323593579], [-68.99614886073174, -33.0412044063474], [-68.99023747537916, -33.040601142298364], [-68.98655624448284, -33.040159224937504], [-68.98566951282616, -33.039974602276544], [-68.98058921355214, -33.038622338880266], [-68.97897025853143, -33.0375378971336], [-68.97868608730391, -33.0370197197596], [-68.97805543643243, -33.036893259910244], [-68.97775592749187, -33.03656586276964], [-68.97759794332949, -33.03640237855581], [-68.97715998797042, -33.035951053019296], [-68.97722831540052, -33.035877158309624], [-68.97557813181339, -33.03413586014465], [-68.97581506639392, -33.03398536864995], [-68.97547489524108, -33.03361100808469], [-68.97510793284644, -33.03322297384665], [-68.9748703206434, -33.032898819305615], [-68.97452446520535, -33.03226504196418], [-68.97434336937782, -33.0316879781402], [-68.97445440708654, -33.03057721422375], [-68.97587079471325, -33.03268051519326], [-68.97825423394082, -33.035127677948786]]]}}, {"type": "Feature", "properties": {"id": 4}, "geometry": {"type": "MultiLineString", "coordinates": [[[-68.98688865990948, -33.08715749604084], [-68.97479584875083, -33.08910252126143], [-68.97217202293422, -33.08961646140794], [-68.96698006160574, -33.09050288766022], [-68.96639363733694, -33.085087601342615], [-68.96587478671874, -33.08101475159138], [-68.96778503624894, -33.080355383239606], [-68.9691581983577, -33.07790109126507], [-68.9686944588817, -33.073846845612444], [-68.98539347246904, -33.07508002790794], [-68.98688865990948, -33.08715749604084]]]}}, {"type": "Feature", "properties": {"id": 1}, "geometry": {"type": "MultiLineString", "coordinates": [[[-68.89020354262382, -33.12951269444144], [-68.89035440469577, -33.13078443856214], [-68.88007265742782, -33.1308295065901], [-68.88017216022838, -33.116758884508876], [-68.87876145097637, -33.10295419253405], [-68.87424247965356, -33.09667274918413], [-68.87352577265008, -33.09342038802458], [-68.86965316935276, -33.094106015655335], [-68.8621352520865, -33.07758374856383], [-68.85771465052336, -33.073785361729215], [-68.85303069490212, -33.07256550910654], [-68.85074203953927, -33.07150708239522], [-68.84851785050365, -33.07131381932032], [-68.84811209156189, -33.069673241148166], [-68.84452791715691, -33.068834874320004], [-68.84443237169022, -33.06777617861604], [-68.84152430091908, -33.067073109178445], [-68.84000459382655, -33.06696966490454], [-68.83891058026272, -33.06665477743603], [-68.83451592342858, -33.06548334100766], [-68.8314017186854, -33.064861248394415], [-68.83088091717707, -33.06394110222585], [-68.83186832866559, -33.062955996706286], [-68.83438331543167, -33.061919719156364], [-68.83795408744824, -33.061536380182076], [-68.8401176683163, -33.0613220024542], [-68.84160945266223, -33.06022266343518], [-68.84802375639157, -33.05599095226926], [-68.85391763990535, -33.053740010009925], [-68.85798327010383, -33.05276423580023], [-68.85959701062816, -33.05264510135042], [-68.86193779931817, -33.053384838925936], [-68.86458662909968, -33.05319443270735], [-68.86534084622343, -33.05137406620534], [-68.86647546494277, -33.05065404483473], [-68.8691300238316, -33.050546560121], [-68.86883041607597, -33.04886711238451], [-68.8698239482326, -33.0488833666826], [-68.8723020123153, -33.04979616627157], [-68.87341789421859, -33.05042725228735], [-68.88029188973584, -33.04951066820806], [-68.8802494940322, -33.04849421776926], [-68.88136278194158, -33.048491017944045], [-68.8828383188729, -33.048944777188474], [-68.89336150675123, -33.05128325449761], [-68.8940576780212, -33.05227332344665], [-68.89823429368661, -33.052263676374864], [-68.89839578851056, -33.053557539522664], [-68.90206031126462, -33.05384089788825], [-68.90809340219278, -33.05525657187938], [-68.91100311149488, -33.0553869387585], [-68.91254217688669, -33.055522338361925], [-68.91526567207247, -33.0557440210673], [-68.9235482562389, -33.05631457988009], [-68.93060010840331, -33.056318702683356], [-68.93421922241416, -33.05687314156126], [-68.93891818961423, -33.057494074364506], [-68.94065268738294, -33.06909232568089], [-68.9389395220903, -33.069533176691955], [-68.92895511181791, -33.067873688689275], [-68.93043665866081, -33.077173417242655], [-68.93073868830776, -33.08369485392324], [-68.92545934660323, -33.083674637647626], [-68.91379304948013, -33.08430993163096], [-68.89953950686103, -33.083276276939124], [-68.89581953536813, -33.084379329247305], [-68.89731443841124, -33.10054777157604], [-68.90058497922102, -33.13604638736081], [-68.89278429008347, -33.12950147648214], [-68.89020354262382, -33.12951269444144]]]}}, {"type": "Feature", "properties": {"id": 3}, "geometry": {"type": "MultiLineString", "coordinates": [[[-68.85627201543139, -32.965809567093004], [-68.85703344176373, -32.967791467707585], [-68.8594370728476, -32.974250189971926], [-68.86175257098994, -32.98203113966161], [-68.86391217078425, -32.987913965010534], [-68.86456034510736, -32.98917686986364], [-68.86531381580573, -32.99346130117448], [-68.8658881018066, -32.99586412186221], [-68.8676351030151, -33.000881376678315], [-68.86773614907398, -33.00288370187608], [-68.86843368018204, -33.005357837779286], [-68.87423332188344, -33.00537491486232], [-68.87324050737713, -33.00019916933966], [-68.88245525250838, -33.000169501940256], [-68.88213720772531, -33.00528950634395], [-68.88693948335538, -33.005482623047634], [-68.89698033367608, -33.00559484340422], [-68.90341136645547, -33.00574803992913], [-68.90366342782625, -33.0012042807623], [-68.90525624282233, -33.002431101951096], [-68.90563509580609, -33.00148758055896], [-68.90951577778647, -33.00416162336992], [-68.91026410811496, -33.003522394627666], [-68.91116045015137, -33.00364723354942], [-68.91279184686215, -33.004040492185084], [-68.9145954956808, -33.00466677825951], [-68.91609828192519, -33.0053371178705], [-68.91748376966754, -33.00627771977074], [-68.91997440108449, -33.00793826594555], [-68.9202880659486, -33.00754385255923], [-68.92165139548769, -33.008040943415864], [-68.9238010773764, -33.008414919763815], [-68.92639953075533, -33.00875958651123], [-68.92982602425433, -33.00929437139473], [-68.92933174767184, -33.01162006656956], [-68.92411045968457, -33.010791601168656], [-68.92747619226819, -33.01341344418384], [-68.92883589988058, -33.01411160936573], [-68.92879542921663, -33.014175506352245], [-68.92978005918513, -33.01466510235116], [-68.93034180049749, -33.01513913962672], [-68.93058624286863, -33.0155314763711], [-68.93077874591411, -33.015678297572975], [-68.93044064594301, -33.016139361829545], [-68.93021372408788, -33.01600558366693], [-68.92970804304514, -33.016637771502936], [-68.92856799381123, -33.01619392638436], [-68.92808855200921, -33.01609697878875], [-68.92713947320436, -33.0158733410576], [-68.92670214577738, -33.01584246694747], [-68.9260037405926, -33.01581789076227], [-68.92572126932586, -33.015679478135525], [-68.92548841194265, -33.015851574579635], [-68.92522937920296, -33.016063133805176], [-68.92859023040407, -33.03423994408846], [-68.9271338650612, -33.034838669496935], [-68.92573423131584, -33.03503819723038], [-68.9185829734585, -33.035287029554006], [-68.91934226893544, -33.04407192740011], [-68.91679179516186, -33.04361358635298], [-68.91456266905283, -33.04333129845289], [-68.91289863463327, -33.04301632683261], [-68.91260914721732, -33.04379741507979], [-68.9100798031181, -33.043715233032394], [-68.90884079050089, -33.04317928797905], [-68.90839351851113, -33.04287942804609], [-68.90801264130077, -33.042448411951156], [-68.90638524202394, -33.04262625189484], [-68.90432758221746, -33.04305430520604], [-68.89977490115544, -33.043469881163325], [-68.8980895223456, -33.04341974562017], [-68.89555712774968, -33.04604775691036], [-68.8817476485549, -33.045893900099095], [-68.87351175531776, -33.04459451799586], [-68.8717249475977, -33.04295975536859], [-68.86737084398884, -33.042828196059986], [-68.86664251109474, -33.04084117965283], [-68.85821562236694, -33.04301757727473], [-68.85702318037717, -33.043039577375495], [-68.85555929227363, -33.04265023006819], [-68.85416050875375, -33.04199878383796], [-68.85298830245272, -33.041219929243205], [-68.84903350710069, -33.03758692200924], [-68.84727883543565, -33.03630744513247], [-68.8388856210358, -33.03297513045359], [-68.8353255156988, -33.03369288675195], [-68.834843131327, -33.03294522587858], [-68.83470438716486, -33.03266651697416], [-68.83354049994406, -33.03086797030002], [-68.83174726929816, -33.029845735506754], [-68.8294231261177, -33.0298001661037], [-68.82902832584055, -33.028759024060854], [-68.82810416377986, -33.02716045005102], [-68.84040930161353, -33.02566679351065], [-68.83272660158049, -33.00841808966569], [-68.83357013044942, -33.008183711835045], [-68.82565503893208, -32.98949333822519], [-68.82086078804677, -32.98013357303625], [-68.81823543174853, -32.97609889303296], [-68.82154060245027, -32.97547240694869], [-68.81992573437671, -32.97242858267622], [-68.81963056507834, -32.9717999540106], [-68.82718291803627, -32.97025771157238], [-68.83332068308982, -32.96909468261417], [-68.83283309851424, -32.967183972400996], [-68.83198791487499, -32.96472187262052], [-68.83143364997002, -32.963093035256975], [-68.83291438569523, -32.96261828654676], [-68.83461752306242, -32.962438533341654], [-68.83465226689336, -32.962509282227074], [-68.83390059340017, -32.96007132579822], [-68.83806287223828, -32.95992154888582], [-68.84608309085962, -32.959429933220946], [-68.85276945165657, -32.95868059499675], [-68.85344256107858, -32.95973723026634], [-68.85459581739384, -32.961985522967666], [-68.85627201543139, -32.965809567093004]]]}}]};
 
-// ── Mapa ──────────────────────────────────────────
+// Inicializar mapa
 const map = L.map('map', {
   center: [-33.0, -68.93],
   zoom: 12,
@@ -225,44 +156,25 @@ const map = L.map('map', {
 
 L.control.zoom({ position: 'topright' }).addTo(map);
 
-// ── Capas base ────────────────────────────────────
-const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap contributors',
-  maxZoom: 19
-}).addTo(map);
-
+// Capa satélite
 const satellite = L.tileLayer(
   'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
   { attribution: 'Esri World Imagery', maxZoom: 19 }
-);
+).addTo(map);
 
-const satLabels = L.tileLayer(
+// Etiquetas sobre satélite
+const labels = L.tileLayer(
   'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
-  { attribution: '', maxZoom: 19, opacity: 0.85 }
-);
+  { attribution: '', maxZoom: 19, opacity: 0.8 }
+).addTo(map);
 
-let currentBase = 'osm';
-function switchBasemap(name) {
-  if (name === 'osm') {
-    map.removeLayer(satellite);
-    map.removeLayer(satLabels);
-    map.addLayer(osm);
-  } else {
-    map.removeLayer(osm);
-    map.addLayer(satellite);
-    map.addLayer(satLabels);
-  }
-  currentBase = name;
-  document.querySelectorAll('.basemap-btn').forEach(b => b.classList.toggle('active', b.dataset.bm === name));
-}
-
-// ── Colores semáforo ──────────────────────────────
+// Colores semáforo
 function getColor(tipo) {
   switch(tipo) {
     case 'FORMAL': return '#22c55e';
-    case 'INFORMAL EN REGULARIZACION':
-    case 'POPULAR': return '#f59e0b';
+    case 'INFORMAL EN REGULARIZACION': return '#f59e0b';
     case 'INFORMAL': return '#ef4444';
+    case 'POPULAR': return '#f59e0b';
     default: return '#888';
   }
 }
@@ -270,72 +182,31 @@ function getColor(tipo) {
 function getLabel(tipo) {
   switch(tipo) {
     case 'FORMAL': return 'Formal';
-    case 'INFORMAL EN REGULARIZACION':
-    case 'POPULAR': return 'Informal en Regularización';
+    case 'INFORMAL EN REGULARIZACION': return 'Informal en Regularización';
     case 'INFORMAL': return 'Informal';
+    case 'POPULAR': return 'Informal en Regularización';
     default: return tipo;
   }
 }
 
 function getBadgeStyle(tipo) {
   switch(tipo) {
-    case 'FORMAL': return 'background:#dcfce7;color:#166534;';
-    case 'INFORMAL EN REGULARIZACION':
-    case 'POPULAR': return 'background:#fef9c3;color:#78350f;';
-    case 'INFORMAL': return 'background:#fee2e2;color:#7f1d1d;';
-    default: return 'background:#eee;color:#333;';
+    case 'FORMAL': return 'background:#166534;color:#bbf7d0;';
+    case 'INFORMAL EN REGULARIZACION': return 'background:#78350f;color:#fde68a;';
+    case 'INFORMAL': return 'background:#7f1d1d;color:#fecaca;';
+    case 'POPULAR': return 'background:#78350f;color:#fde68a;';
+    default: return 'background:#333;color:#eee;';
   }
 }
 
-// ── Calcular centroides de polígonos ──────────────
-function centroid(feature) {
-  const coords = feature.geometry.coordinates;
-  let xs = [], ys = [];
-  // Usar el primer anillo del primer polígono
-  const ring = coords[0][0];
-  ring.forEach(c => { xs.push(c[0]); ys.push(c[1]); });
-  return [
-    ys.reduce((a,b) => a+b, 0) / ys.length,
-    xs.reduce((a,b) => a+b, 0) / xs.length
-  ];
-}
-
-// ── Capa de etiquetas de barrios ──────────────────
-const labelsGroup = L.layerGroup();
-
-LOTEOS_DATA.features.forEach(feature => {
-  const p = feature.properties;
-  const [lat, lng] = centroid(feature);
-  const label = L.marker([lat, lng], {
-    icon: L.divIcon({
-      className: 'barrio-label',
-      html: `<div>${p.nom_barrio || ''}</div>`,
-      iconAnchor: [0, 0]
-    }),
-    interactive: false,
-    zIndexOffset: -100
-  });
-  labelsGroup.addLayer(label);
-});
-
-// Mostrar/ocultar etiquetas según zoom
-const LABEL_ZOOM = 13;
-function updateLabels() {
-  if (map.getZoom() >= LABEL_ZOOM && layerState.nombres) {
-    map.addLayer(labelsGroup);
-  } else {
-    map.removeLayer(labelsGroup);
-  }
-}
-map.on('zoomend', updateLabels);
-
-// ── Capa loteos ───────────────────────────────────
+// Capa loteos
 const loteosLayer = L.geoJSON(LOTEOS_DATA, {
   style: function(feature) {
-    const color = getColor(feature.properties.tipo);
+    const tipo = feature.properties.tipo;
+    const color = getColor(tipo);
     return {
       fillColor: color,
-      fillOpacity: 0.5,
+      fillOpacity: 0.55,
       color: color,
       weight: 1.5,
       opacity: 0.9
@@ -343,6 +214,7 @@ const loteosLayer = L.geoJSON(LOTEOS_DATA, {
   },
   onEachFeature: function(feature, layer) {
     const p = feature.properties;
+    const color = getColor(p.tipo);
     layer.on('click', function() {
       layer.bindPopup(`
         <div class="popup-title">${p.nom_barrio || 'Sin nombre'}</div>
@@ -352,93 +224,62 @@ const loteosLayer = L.geoJSON(LOTEOS_DATA, {
       `).openPopup();
     });
     layer.on('mouseover', function() {
-      layer.setStyle({ fillOpacity: 0.8, weight: 2.5 });
+      layer.setStyle({ fillOpacity: 0.85, weight: 2.5 });
     });
     layer.on('mouseout', function() {
-      const tipo = layer.feature.properties.tipo;
-      const cat = tipo === 'FORMAL' ? 'formal' : (tipo === 'INFORMAL' ? 'informal' : 'regularizacion');
-      if (layerState[cat]) layer.setStyle({ fillOpacity: 0.5, weight: 1.5 });
+      layer.setStyle({ fillOpacity: 0.55, weight: 1.5 });
     });
   }
 }).addTo(map);
 
-// ── Ícono pozos ───────────────────────────────────
-const pozoIcon = L.divIcon({
-  html: `<div style="
-    width:13px; height:13px;
-    background:#38bdf8;
-    border:2.5px solid #fff;
-    border-radius:50%;
-    box-shadow:0 0 6px rgba(56,189,248,0.7), 0 0 0 3px rgba(56,189,248,0.2);
-  "></div>`,
-  className: '',
-  iconSize: [13, 13],
-  iconAnchor: [6, 6],
-  popupAnchor: [0, -10]
-});
+// Ícono personalizado para pozos
+function pozoIcon() {
+  return L.divIcon({
+    html: `<div style="
+      width:14px; height:14px;
+      background:#38bdf8;
+      border:2.5px solid #fff;
+      border-radius:50%;
+      box-shadow:0 0 8px #38bdf8, 0 0 0 3px rgba(56,189,248,0.3);
+    "></div>`,
+    className: '',
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+    popupAnchor: [0, -10]
+  });
+}
 
-// ── Capa pozos ────────────────────────────────────
+// Capa pozos
 const pozosLayer = L.geoJSON(POZOS_DATA, {
   pointToLayer: function(feature, latlng) {
-    return L.marker(latlng, { icon: pozoIcon });
+    return L.marker(latlng, { icon: pozoIcon() });
   },
   onEachFeature: function(feature, layer) {
     const p = feature.properties;
-    let links = '';
-    if (p.perfil) links += `<a class="popup-link" href="${p.perfil}" target="_blank">📄 Ver perfil</a><br/>`;
-    if (p.telemetria) links += `<a class="popup-link" href="${p.telemetria}" target="_blank">📡 Telemetría</a>`;
+    let linksHtml = '';
+    if (p.perfil) linksHtml += `<a href="${p.perfil}" target="_blank" style="color:#38bdf8;font-size:11px;display:block;margin-top:4px;">📄 Ver perfil</a>`;
+    if (p.telemetria) linksHtml += `<a href="${p.telemetria}" target="_blank" style="color:#38bdf8;font-size:11px;display:block;">📡 Telemetría</a>`;
     layer.bindPopup(`
       <div class="popup-title">💧 ${p.nombre || 'Pozo sin nombre'}</div>
-      ${links || '<div class="popup-row">Sin información adicional</div>'}
+      ${linksHtml || '<div class="popup-row">Sin información adicional</div>'}
     `);
   }
 }).addTo(map);
 
-// ── Capa área servida ─────────────────────────────
+// Capa área servida
 const areaLayer = L.geoJSON(AREA_DATA, {
   style: {
-    color: '#7c3aed',
+    color: '#a78bfa',
     weight: 2.5,
-    opacity: 0.85,
-    dashArray: '7 5'
+    opacity: 0.9,
+    dashArray: '6 4'
   }
 }).addTo(map);
 
-// Ajustar vista
+// Ajustar vista a los loteos
 map.fitBounds(loteosLayer.getBounds(), { padding: [30, 30] });
 
-// ── Estado de capas ───────────────────────────────
-const layerState = { formal:true, regularizacion:true, informal:true, pozos:true, area:true, nombres:true };
-
-function redrawLoteos() {
-  loteosLayer.eachLayer(function(layer) {
-    const tipo = layer.feature.properties.tipo;
-    const cat = tipo === 'FORMAL' ? 'formal' : (tipo === 'INFORMAL' ? 'informal' : 'regularizacion');
-    const vis = layerState[cat];
-    layer.setStyle({
-      fillOpacity: vis ? 0.5 : 0,
-      opacity: vis ? 0.9 : 0
-    });
-    layer.options.interactive = vis;
-  });
-}
-
-function toggleLayer(name) {
-  layerState[name] = !layerState[name];
-  document.getElementById('leg-' + name).classList.toggle('inactive', !layerState[name]);
-
-  if (name === 'pozos') {
-    layerState.pozos ? map.addLayer(pozosLayer) : map.removeLayer(pozosLayer);
-  } else if (name === 'area') {
-    layerState.area ? map.addLayer(areaLayer) : map.removeLayer(areaLayer);
-  } else if (name === 'nombres') {
-    updateLabels();
-  } else {
-    redrawLoteos();
-  }
-}
-
-// ── Leyenda ───────────────────────────────────────
+// ===== LEYENDA =====
 const legendControl = L.control({ position: 'bottomleft' });
 legendControl.onAdd = function() {
   const div = L.DomUtil.create('div', 'legend');
@@ -447,32 +288,31 @@ legendControl.onAdd = function() {
     <div class="legend-section">
       <div class="legend-section-title">Clasificación de Loteos</div>
       <div class="legend-item" id="leg-formal" onclick="toggleLayer('formal')">
-        <div class="swatch" style="background:#22c55e;"></div>Formal
+        <div class="swatch" style="background:#22c55e;"></div>
+        Formal
       </div>
       <div class="legend-item" id="leg-regularizacion" onclick="toggleLayer('regularizacion')">
-        <div class="swatch" style="background:#f59e0b;"></div>Informal en Regularización
+        <div class="swatch" style="background:#f59e0b;"></div>
+        Informal en Regularización
       </div>
       <div class="legend-item" id="leg-informal" onclick="toggleLayer('informal')">
-        <div class="swatch" style="background:#ef4444;"></div>Informal
+        <div class="swatch" style="background:#ef4444;"></div>
+        Informal
       </div>
     </div>
     <div class="legend-section">
-      <div class="legend-section-title">Aguas Luján</div>
+      <div class="legend-section-title">Infraestructura Aguas Luján</div>
       <div class="legend-item" id="leg-pozos" onclick="toggleLayer('pozos')">
-        <div class="swatch-circle" style="background:#38bdf8;"></div>Pozos
+        <div class="swatch-circle" style="background:#38bdf8;border-color:#fff;"></div>
+        Pozos
       </div>
       <div class="legend-item" id="leg-area" onclick="toggleLayer('area')">
-        <div class="swatch-line"></div>Área Servida
+        <div class="swatch-line" style="background:#a78bfa;"></div>
+        Área Servida
       </div>
     </div>
-    <div class="legend-section">
-      <div class="legend-section-title">Etiquetas</div>
-      <div class="legend-item" id="leg-nombres" onclick="toggleLayer('nombres')">
-        <div style="font-size:13px;width:18px;text-align:center;">🏷️</div>Nombres de barrios
-      </div>
-    </div>
-    <div style="font-size:10px;color:#999;margin-top:4px;border-top:1px solid #eee;padding-top:6px;">
-      Clic en ítem para mostrar/ocultar · Nombres visibles desde zoom 13
+    <div style="font-size:10px;color:#677;margin-top:4px;border-top:1px solid rgba(255,255,255,0.1);padding-top:6px;">
+      Clic en leyenda para mostrar/ocultar capas
     </div>
   `;
   L.DomEvent.disableClickPropagation(div);
@@ -480,7 +320,15 @@ legendControl.onAdd = function() {
 };
 legendControl.addTo(map);
 
-// ── Stats ─────────────────────────────────────────
+// ===== STATS =====
+const counts = { formal:0, regularizacion:0, informal:0 };
+LOTEOS_DATA.features.forEach(f => {
+  const t = f.properties.tipo;
+  if (t === 'FORMAL') counts.formal++;
+  else if (t === 'INFORMAL EN REGULARIZACION' || t === 'POPULAR') counts.regularizacion++;
+  else if (t === 'INFORMAL') counts.informal++;
+});
+
 const statsControl = L.control({ position: 'topright' });
 statsControl.onAdd = function() {
   const div = L.DomUtil.create('div', 'stats-box');
@@ -489,17 +337,17 @@ statsControl.onAdd = function() {
     <h4>Resumen · Vertientes del Pedemonte</h4>
     <div class="stat-row">
       <div class="stat-label"><span class="stat-dot" style="background:#22c55e"></span>Formal</div>
-      <div class="stat-val">9 loteos</div>
+      <div class="stat-val">${counts.formal} loteos</div>
     </div>
     <div class="stat-row">
       <div class="stat-label"><span class="stat-dot" style="background:#f59e0b"></span>En Regularización</div>
-      <div class="stat-val">67 loteos</div>
+      <div class="stat-val">${counts.regularizacion} loteos</div>
     </div>
     <div class="stat-row">
       <div class="stat-label"><span class="stat-dot" style="background:#ef4444"></span>Informal</div>
-      <div class="stat-val">6 loteos</div>
+      <div class="stat-val">${counts.informal} loteos</div>
     </div>
-    <div style="border-top:1px solid #eee;margin-top:6px;padding-top:6px;" class="stat-row">
+    <div style="border-top:1px solid rgba(255,255,255,0.1);margin-top:6px;padding-top:6px;" class="stat-row">
       <div class="stat-label">💧 Pozos</div>
       <div class="stat-val">31</div>
     </div>
@@ -509,22 +357,36 @@ statsControl.onAdd = function() {
 };
 statsControl.addTo(map);
 
-// ── Selector de mapa base ─────────────────────────
-const basemapControl = L.control({ position: 'bottomright' });
-basemapControl.onAdd = function() {
-  const div = L.DomUtil.create('div', 'basemap-control');
-  div.innerHTML = `
-    <h4>Mapa base</h4>
-    <button class="basemap-btn active" data-bm="osm" onclick="switchBasemap('osm')">🗺️ OpenStreetMap</button>
-    <button class="basemap-btn" data-bm="sat" onclick="switchBasemap('sat')">🛰️ Satélite</button>
-  `;
-  L.DomEvent.disableClickPropagation(div);
-  return div;
-};
-basemapControl.addTo(map);
+// Toggle de capas
+const layerState = { formal:true, regularizacion:true, informal:true, pozos:true, area:true };
 
-// Inicializar etiquetas
-updateLabels();
+function toggleLayer(name) {
+  layerState[name] = !layerState[name];
+  document.getElementById('leg-' + name).classList.toggle('inactive', !layerState[name]);
+  
+  if (name === 'pozos') {
+    layerState.pozos ? map.addLayer(pozosLayer) : map.removeLayer(pozosLayer);
+    return;
+  }
+  if (name === 'area') {
+    layerState.area ? map.addLayer(areaLayer) : map.removeLayer(areaLayer);
+    return;
+  }
+  
+  // Redraw loteos filtrando
+  loteosLayer.eachLayer(function(layer) {
+    const tipo = layer.feature.properties.tipo;
+    const isForma = tipo === 'FORMAL';
+    const isReg = tipo === 'INFORMAL EN REGULARIZACION' || tipo === 'POPULAR';
+    const isInf = tipo === 'INFORMAL';
+    
+    const visible = (isForma && layerState.formal) ||
+                    (isReg && layerState.regularizacion) ||
+                    (isInf && layerState.informal);
+    
+    layer.setStyle({ fillOpacity: visible ? 0.55 : 0, opacity: visible ? 0.9 : 0, interactive: visible });
+  });
+}
 </script>
 </body>
 </html>
