@@ -1,0 +1,413 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans, sans-serif); }
+
+  .ide-hero {
+    background: linear-gradient(135deg, #0c447c 0%, #185fa5 60%, #1d9e75 100%);
+    border-radius: var(--border-radius-lg);
+    padding: 48px 40px 40px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  .ide-hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 240px; height: 240px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+  }
+  .ide-hero::after {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: 60px;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  .ide-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.15);
+    border: 0.5px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+  .ide-badge-dot { width: 7px; height: 7px; border-radius: 50%; background: #5DCAA5; }
+  .ide-hero h1 { font-size: 26px; font-weight: 500; margin-bottom: 8px; line-height: 1.3; }
+  .ide-hero p { font-size: 14px; opacity: 0.85; max-width: 480px; line-height: 1.6; margin-bottom: 24px; }
+  .ide-hero-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-primary {
+    background: #fff; color: #0c447c;
+    border: none; border-radius: var(--border-radius-md);
+    padding: 9px 18px; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: opacity .15s;
+  }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-outline {
+    background: transparent; color: #fff;
+    border: 0.5px solid rgba(255,255,255,0.5);
+    border-radius: var(--border-radius-md);
+    padding: 9px 18px; font-size: 13px;
+    cursor: pointer; transition: background .15s;
+  }
+  .btn-outline:hover { background: rgba(255,255,255,0.1); }
+  .idera-stamp {
+    position: absolute; top: 20px; right: 24px;
+    background: rgba(255,255,255,0.12);
+    border: 0.5px solid rgba(255,255,255,0.25);
+    border-radius: var(--border-radius-md);
+    padding: 6px 12px;
+    font-size: 11px; color: rgba(255,255,255,0.85);
+    text-align: center;
+  }
+  .idera-stamp strong { display: block; font-size: 12px; font-weight: 500; color: #fff; }
+
+  .section { margin-top: 24px; }
+  .section-title {
+    font-size: 11px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--color-text-secondary);
+    margin-bottom: 12px;
+  }
+
+  /* Recursos destacados */
+  .recursos-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .recurso-card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    padding: 16px 14px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    text-decoration: none;
+  }
+  .recurso-card:hover {
+    border-color: var(--color-border-secondary);
+    background: var(--color-background-secondary);
+  }
+  .recurso-icon {
+    width: 36px; height: 36px;
+    border-radius: var(--border-radius-md);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 10px;
+    font-size: 18px;
+  }
+  .recurso-card h3 { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 3px; }
+  .recurso-card p { font-size: 11px; color: var(--color-text-secondary); line-height: 1.4; }
+  .recurso-tag {
+    display: inline-block; margin-top: 8px;
+    font-size: 10px; font-weight: 500; padding: 2px 7px;
+    border-radius: 20px;
+  }
+
+  /* Públicos */
+  .publicos-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .publico-card {
+    border-radius: var(--border-radius-lg);
+    padding: 18px 16px; cursor: pointer;
+    transition: opacity .15s;
+  }
+  .publico-card:hover { opacity: 0.92; }
+  .publico-card.ciudadano { background: #E6F1FB; border: 0.5px solid #B5D4F4; }
+  .publico-card.tecnico   { background: #E1F5EE; border: 0.5px solid #9FE1CB; }
+  .publico-card h3 { font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+  .publico-card.ciudadano h3 { color: #0C447C; }
+  .publico-card.tecnico h3   { color: #085041; }
+  .publico-card p { font-size: 12px; line-height: 1.5; }
+  .publico-card.ciudadano p { color: #185fa5; }
+  .publico-card.tecnico p   { color: #0F6E56; }
+  .publico-links { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+  .publico-link { font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 4px; }
+  .publico-card.ciudadano .publico-link { color: #0C447C; }
+  .publico-card.tecnico .publico-link   { color: #085041; }
+
+  /* Geoservicios */
+  .servicios-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .stab {
+    padding: 6px 14px; font-size: 12px; font-weight: 500;
+    border-radius: 20px; cursor: pointer;
+    border: 0.5px solid var(--color-border-secondary);
+    background: transparent; color: var(--color-text-secondary);
+    transition: all .15s;
+  }
+  .stab.active {
+    background: #0C447C; color: #fff; border-color: #0C447C;
+  }
+  .servicio-panel { display: none; }
+  .servicio-panel.active { display: flex; gap: 12px; align-items: flex-start; }
+  .servicio-info { flex: 1; }
+  .servicio-info h4 { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 6px; }
+  .servicio-info p { font-size: 12px; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 10px; }
+  .servicio-url {
+    font-size: 11px; font-family: var(--font-mono);
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md);
+    padding: 7px 12px; display: block;
+    color: var(--color-text-info);
+    word-break: break-all;
+  }
+  .servicio-badge-panel {
+    width: 80px; min-width: 80px; text-align: center;
+    border-radius: var(--border-radius-lg);
+    padding: 16px 10px;
+    font-size: 22px;
+  }
+
+  /* Métricas */
+  .metricas-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .metrica {
+    background: var(--color-background-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 14px 12px; text-align: center;
+  }
+  .metrica .num { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+  .metrica .lbl { font-size: 11px; color: var(--color-text-secondary); margin-top: 3px; }
+
+  /* IDERA standards */
+  .idera-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .idera-chip {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 20px; padding: 5px 12px;
+    font-size: 12px; color: var(--color-text-secondary);
+  }
+  .idera-chip-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+  /* Iniciativas */
+  .iniciativas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .iniciativa-card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color .15s;
+  }
+  .iniciativa-card:hover { border-color: var(--color-border-secondary); }
+  .inic-num { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 6px; }
+  .iniciativa-card h3 { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+  .iniciativa-card p  { font-size: 11px; color: var(--color-text-secondary); line-height: 1.5; }
+</style>
+
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden">Prototipo de la nueva página IDE Luján de Cuyo</h2>
+
+<!-- HERO -->
+<div class="ide-hero">
+  <div class="idera-stamp">
+    <strong>IDERA</strong>
+    Nodo adherido
+  </div>
+  <div class="ide-badge">
+    <span class="ide-badge-dot"></span>
+    IDE Luján de Cuyo · Municipio de Mendoza
+  </div>
+  <h1>Infraestructura de Datos Espaciales</h1>
+  <p>Accedé a la información geoespacial del departamento: mapas, capas, servicios y metadatos abiertos para ciudadanos, profesionales y organismos públicos.</p>
+  <div class="ide-hero-btns">
+    <button class="btn-primary" onclick="sendPrompt('Quiero explorar el Geoportal de la IDE')">Explorar geoportal →</button>
+    <button class="btn-outline" onclick="sendPrompt('Quiero ver el Visor GIS general de Luján de Cuyo')">Visor GIS</button>
+    <button class="btn-outline" onclick="sendPrompt('Quiero conocer los geoservicios WMS y WFS disponibles')">Geoservicios</button>
+  </div>
+</div>
+
+<!-- MÉTRICAS -->
+<div class="section">
+  <div class="section-title">La IDE en números</div>
+  <div class="metricas-row">
+    <div class="metrica"><div class="num" style="color:#185fa5">+120</div><div class="lbl">Capas publicadas</div></div>
+    <div class="metrica"><div class="num" style="color:#0F6E56">3</div><div class="lbl">Geoservicios activos</div></div>
+    <div class="metrica"><div class="num" style="color:#854F0B">8</div><div class="lbl">Recursos disponibles</div></div>
+    <div class="metrica"><div class="num" style="color:#A32D2D">CC BY 4.0</div><div class="lbl">Licencia abierta</div></div>
+  </div>
+</div>
+
+<!-- PARA QUÉ PÚBLICO -->
+<div class="section">
+  <div class="section-title">¿Qué estás buscando?</div>
+  <div class="publicos-row">
+    <div class="publico-card ciudadano" onclick="sendPrompt('Qué recursos de la IDE son más útiles para ciudadanos en general')">
+      <h3>Soy ciudadano / ciudadana</h3>
+      <p>Quiero explorar mapas del municipio, conocer distritos, ciclovías o servicios urbanos.</p>
+      <div class="publico-links">
+        <span class="publico-link">→ Atlas de Luján de Cuyo</span>
+        <span class="publico-link">→ Mapa de servicios</span>
+        <span class="publico-link">→ Luján 3D</span>
+      </div>
+    </div>
+    <div class="publico-card tecnico" onclick="sendPrompt('Qué recursos de la IDE son más útiles para técnicos y profesionales GIS')">
+      <h3>Soy profesional / técnico GIS</h3>
+      <p>Necesito acceder a servicios WMS, WFS, descargar datasets o consultar metadatos.</p>
+      <div class="publico-links">
+        <span class="publico-link">→ Geoservicios OGC</span>
+        <span class="publico-link">→ Geoportal & catálogo</span>
+        <span class="publico-link">→ Metadatos IDERA</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RECURSOS DESTACADOS -->
+<div class="section">
+  <div class="section-title">Recursos principales</div>
+  <div class="recursos-grid">
+    <div class="recurso-card" onclick="sendPrompt('Abrí el Visor GIS general de Luján de Cuyo')">
+      <div class="recurso-icon" style="background:#E6F1FB; font-size:18px">🗺️</div>
+      <h3>Visor GIS</h3>
+      <p>Visualizá capas y sectores del municipio</p>
+      <span class="recurso-tag" style="background:#E6F1FB;color:#0C447C">Ciudadano</span>
+    </div>
+    <div class="recurso-card" onclick="sendPrompt('Abrí Luján 3D')">
+      <div class="recurso-icon" style="background:#E1F5EE; font-size:18px">🏔️</div>
+      <h3>Luján 3D</h3>
+      <p>Plataforma interactiva tridimensional</p>
+      <span class="recurso-tag" style="background:#E1F5EE;color:#085041">Nuevo</span>
+    </div>
+    <div class="recurso-card" onclick="sendPrompt('Abrí el Geoportal de Luján de Cuyo')">
+      <div class="recurso-icon" style="background:#FAEEDA; font-size:18px">📦</div>
+      <h3>Geoportal</h3>
+      <p>Catálogo de datos, mapas y GeoStories</p>
+      <span class="recurso-tag" style="background:#FAEEDA;color:#633806">Técnico</span>
+    </div>
+    <div class="recurso-card" onclick="sendPrompt('Abrí el Observatorio Territorial de Luján de Cuyo')">
+      <div class="recurso-icon" style="background:#FAECE7; font-size:18px">📊</div>
+      <h3>Observatorio</h3>
+      <p>Información y análisis de procesos</p>
+      <span class="recurso-tag" style="background:#FAECE7;color:#712B13">Análisis</span>
+    </div>
+    <div class="recurso-card" onclick="sendPrompt('Abrí los Datos Abiertos de Luján de Cuyo')">
+      <div class="recurso-icon" style="background:#EAF3DE; font-size:18px">🔓</div>
+      <h3>Datos Abiertos</h3>
+      <p>DataSets bajo licencia CC BY 4.0</p>
+      <span class="recurso-tag" style="background:#EAF3DE;color:#27500A">Abierto</span>
+    </div>
+    <div class="recurso-card" onclick="sendPrompt('Abrí el Centro Estadístico de Luján de Cuyo')">
+      <div class="recurso-icon" style="background:#EEEDFE; font-size:18px">📈</div>
+      <h3>Centro Estadístico</h3>
+      <p>Luján en datos y gráficos</p>
+      <span class="recurso-tag" style="background:#EEEDFE;color:#3C3489">Estadística</span>
+    </div>
+    <div class="recurso-card" onclick="sendPrompt('Mostrá el Atlas de Luján de Cuyo')">
+      <div class="recurso-icon" style="background:#E6F1FB; font-size:18px">🌐</div>
+      <h3>Atlas</h3>
+      <p>Mapas temáticos del departamento</p>
+      <span class="recurso-tag" style="background:#E6F1FB;color:#0C447C">Ciudadano</span>
+    </div>
+    <div class="recurso-card" onclick="sendPrompt('Mostrá el Plano Abierto de Luján de Cuyo')">
+      <div class="recurso-icon" style="background:#FBEAF0; font-size:18px">📐</div>
+      <h3>Plano Abierto</h3>
+      <p>Planificación urbana y territorial</p>
+      <span class="recurso-tag" style="background:#FBEAF0;color:#72243E">Urbanismo</span>
+    </div>
+  </div>
+</div>
+
+<!-- GEOSERVICIOS -->
+<div class="section">
+  <div class="section-title">Geoservicios OGC</div>
+  <div class="servicios-tabs">
+    <button class="stab active" onclick="showTab('wms',this)">WMS</button>
+    <button class="stab" onclick="showTab('wfs',this)">WFS</button>
+    <button class="stab" onclick="showTab('wcs',this)">WCS</button>
+  </div>
+  <div id="tab-wms" class="servicio-panel active">
+    <div class="servicio-badge-panel" style="background:#E6F1FB;">
+      <div style="font-size:24px">🖼️</div>
+      <div style="font-size:11px;color:#0C447C;font-weight:500;margin-top:6px">Mapas en Web</div>
+    </div>
+    <div class="servicio-info">
+      <h4>Servicio WMS — Web Map Service</h4>
+      <p>Visualizá capas geográficas como imágenes generadas dinámicamente: vectoriales, ortofotografías, imágenes satelitales. Compatible con QGIS, ArcGIS y otros SIG.</p>
+      <code class="servicio-url">https://geoportalqa.lujandecuyo.gob.ar/geoserver/wms</code>
+    </div>
+  </div>
+  <div id="tab-wfs" class="servicio-panel">
+    <div class="servicio-badge-panel" style="background:#E1F5EE;">
+      <div style="font-size:24px">📍</div>
+      <div style="font-size:11px;color:#085041;font-weight:500;margin-top:6px">Vectores en Web</div>
+    </div>
+    <div class="servicio-info">
+      <h4>Servicio WFS — Web Feature Service</h4>
+      <p>Accedé y descargá los datos vectoriales en su formato original. Permite consultar, filtrar y editar features geográficas. Ideal para análisis en SIG de escritorio.</p>
+      <code class="servicio-url">https://geoportalqa.lujandecuyo.gob.ar/geoserver/wfs</code>
+    </div>
+  </div>
+  <div id="tab-wcs" class="servicio-panel">
+    <div class="servicio-badge-panel" style="background:#FAEEDA;">
+      <div style="font-size:24px">🌡️</div>
+      <div style="font-size:11px;color:#633806;font-weight:500;margin-top:6px">Coberturas</div>
+    </div>
+    <div class="servicio-info">
+      <h4>Servicio WCS — Web Coverage Service</h4>
+      <p>Accedé a datos raster como modelos de elevación, imágenes de satélite y series temporales en formatos interoperables. Orientado a modelado y análisis espacial.</p>
+      <code class="servicio-url">Próximamente disponible</code>
+    </div>
+  </div>
+</div>
+
+<!-- CUMPLIMIENTO IDERA -->
+<div class="section">
+  <div class="section-title">Estándares IDERA aplicados</div>
+  <div class="idera-row">
+    <div class="idera-chip"><span class="idera-chip-dot" style="background:#1D9E75"></span>Perfil de metadatos</div>
+    <div class="idera-chip"><span class="idera-chip-dot" style="background:#185fa5"></span>Servicios OGC</div>
+    <div class="idera-chip"><span class="idera-chip-dot" style="background:#BA7517"></span>Catálogo de objetos</div>
+    <div class="idera-chip"><span class="idera-chip-dot" style="background:#A32D2D"></span>Política de datos</div>
+    <div class="idera-chip"><span class="idera-chip-dot" style="background:#534AB7"></span>Licencia CC BY 4.0</div>
+    <div class="idera-chip"><span class="idera-chip-dot" style="background:#3B6D11"></span>Interoperabilidad</div>
+  </div>
+</div>
+
+<!-- INICIATIVAS -->
+<div class="section">
+  <div class="section-title">Iniciativas en curso</div>
+  <div class="iniciativas-grid">
+    <div class="iniciativa-card" onclick="sendPrompt('Contame más sobre Luján 3D')">
+      <div class="inic-num">01</div>
+      <h3>Luján 3D</h3>
+      <p>Visualización tridimensional interactiva del territorio del departamento.</p>
+    </div>
+    <div class="iniciativa-card" onclick="sendPrompt('Contame más sobre el Plano Abierto de Luján de Cuyo')">
+      <div class="inic-num">02</div>
+      <h3>Plano Abierto</h3>
+      <p>Información abierta sobre planificación urbana y territorial.</p>
+    </div>
+    <div class="iniciativa-card" onclick="sendPrompt('Contame más sobre el Ordenamiento Territorial de Luján de Cuyo')">
+      <div class="inic-num">03</div>
+      <h3>Ordenamiento Territorial</h3>
+      <p>Herramienta para optimizar la toma de decisiones sobre el territorio.</p>
+    </div>
+    <div class="iniciativa-card" onclick="sendPrompt('Contame más sobre el Dataset de Luján de Cuyo')">
+      <div class="inic-num">04</div>
+      <h3>DataSet</h3>
+      <p>Portal de datos públicos abiertos para analizar y mejorar Luján.</p>
+    </div>
+    <div class="iniciativa-card" onclick="sendPrompt('Qué normas y estándares sigue la IDE de Luján de Cuyo')">
+      <div class="inic-num">05</div>
+      <h3>Normas y estándares</h3>
+      <p>Documentación y marcos normativos que rigen la IDE municipal.</p>
+    </div>
+    <div class="iniciativa-card" onclick="sendPrompt('Qué es IDERA y cómo se relaciona con la IDE de Luján de Cuyo')">
+      <div class="inic-num">06</div>
+      <h3>Nodo IDERA</h3>
+      <p>La IDE municipal como parte de la infraestructura nacional de datos espaciales.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+function showTab(id, btn) {
+  document.querySelectorAll('.servicio-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
