@@ -1,0 +1,393 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); font-size: 14px; color: var(--color-text-primary); }
+  .topbar { background: #1a4a2e; color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 12px; border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0; }
+  .topbar-logo { width: 32px; height: 32px; background: #e8c93a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 11px; color: #1a4a2e; flex-shrink: 0; }
+  .topbar h1 { font-size: 15px; font-weight: 500; color: #fff; }
+  .topbar-sub { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 1px; }
+  .topbar-tabs { margin-left: auto; display: flex; gap: 4px; }
+  .tab { padding: 5px 14px; border-radius: var(--border-radius-md); font-size: 12px; cursor: pointer; color: rgba(255,255,255,0.7); border: 0.5px solid rgba(255,255,255,0.2); background: transparent; transition: all 0.15s; }
+  .tab.active { background: #e8c93a; color: #1a4a2e; border-color: #e8c93a; font-weight: 500; }
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 14px 16px; background: var(--color-background-secondary); border-left: 0.5px solid var(--color-border-tertiary); border-right: 0.5px solid var(--color-border-tertiary); }
+  .metric { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px 12px; }
+  .metric-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .metric-value { font-size: 22px; font-weight: 500; line-height: 1; }
+  .metric-sub { font-size: 11px; color: var(--color-text-tertiary); margin-top: 3px; }
+  .metric.green .metric-value { color: #1a6e3a; }
+  .metric.amber .metric-value { color: #8c5a00; }
+  .metric.red .metric-value { color: #8c2a2a; }
+  .metric.blue .metric-value { color: #1a4a8c; }
+  .main { display: grid; grid-template-columns: 1fr 300px; border: 0.5px solid var(--color-border-tertiary); border-top: none; border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg); overflow: hidden; }
+  .left-panel { display: flex; flex-direction: column; border-right: 0.5px solid var(--color-border-tertiary); }
+  .toolbar { padding: 10px 14px; display: flex; align-items: center; gap: 8px; border-bottom: 0.5px solid var(--color-border-tertiary); background: var(--color-background-primary); flex-wrap: wrap; }
+  .search-box { display: flex; align-items: center; gap: 6px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 5px 10px; flex: 1; min-width: 160px; }
+  .search-box input { border: none; background: transparent; outline: none; font-size: 13px; color: var(--color-text-primary); width: 100%; }
+  .search-icon { font-size: 13px; color: var(--color-text-tertiary); }
+  .btn { padding: 5px 12px; border-radius: var(--border-radius-md); font-size: 12px; cursor: pointer; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); transition: background 0.12s; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .btn:hover { background: var(--color-background-secondary); }
+  .btn.primary { background: #1a4a2e; color: #fff; border-color: #1a4a2e; }
+  .btn.primary:hover { background: #1e5c38; }
+  .btn.danger { background: #8c2a2a; color: #fff; border-color: #8c2a2a; }
+  .filter-row { padding: 8px 14px; display: flex; gap: 8px; border-bottom: 0.5px solid var(--color-border-tertiary); background: var(--color-background-secondary); flex-wrap: wrap; align-items: center; }
+  .filter-row select { font-size: 12px; padding: 4px 8px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); cursor: pointer; }
+  .filter-label { font-size: 11px; color: var(--color-text-secondary); }
+  .table-wrap { overflow-y: auto; max-height: 340px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+  thead th { padding: 8px 10px; text-align: left; font-weight: 500; font-size: 11px; color: var(--color-text-secondary); border-bottom: 0.5px solid var(--color-border-tertiary); background: var(--color-background-secondary); position: sticky; top: 0; z-index: 1; text-transform: uppercase; letter-spacing: 0.03em; cursor: pointer; user-select: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  thead th:hover { color: var(--color-text-primary); }
+  tbody tr { border-bottom: 0.5px solid var(--color-border-tertiary); transition: background 0.1s; cursor: pointer; }
+  tbody tr:hover { background: var(--color-background-info); }
+  tbody tr.selected { background: #e8f4ec; }
+  tbody td { padding: 7px 10px; color: var(--color-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .badge { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 500; line-height: 1.4; }
+  .badge.formal { background: #d4edda; color: #1a5c2a; }
+  .badge.informal { background: #f8d7da; color: #721c24; }
+  .badge.proceso { background: #fff3cd; color: #856404; }
+  .badge.pub { background: #d1ecf1; color: #0c5460; }
+  .badge.priv { background: #f0e6f8; color: #4a1070; }
+  .badge.barrera { background: #fde8d8; color: #7c3d0e; }
+  .actions { display: flex; gap: 4px; }
+  .act-btn { padding: 3px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-secondary); color: var(--color-text-primary); }
+  .act-btn:hover { background: var(--color-background-primary); }
+  .act-btn.edit { color: #1a4a8c; border-color: #1a4a8c; }
+  .act-btn.del { color: #8c2a2a; border-color: #8c2a2a; }
+  .act-btn.map { color: #1a6e3a; border-color: #1a6e3a; }
+  .right-panel { display: flex; flex-direction: column; background: var(--color-background-secondary); }
+  .map-header { padding: 10px 12px; font-size: 12px; font-weight: 500; border-bottom: 0.5px solid var(--color-border-tertiary); display: flex; align-items: center; justify-content: space-between; background: var(--color-background-primary); }
+  .map-badge { font-size: 10px; color: var(--color-text-secondary); font-weight: 400; }
+  .map-area { flex: 1; min-height: 260px; position: relative; overflow: hidden; }
+  #leaflet-map { width: 100%; height: 100%; min-height: 260px; }
+  .map-controls { padding: 10px 12px; border-top: 0.5px solid var(--color-border-tertiary); background: var(--color-background-primary); }
+  .map-controls-title { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .layer-item { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; font-size: 12px; }
+  .layer-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .layer-toggle { margin-left: auto; width: 26px; height: 14px; border-radius: 7px; background: #1a4a2e; cursor: pointer; position: relative; }
+  .layer-toggle::after { content: ''; position: absolute; width: 10px; height: 10px; background: #fff; border-radius: 50%; top: 2px; right: 2px; transition: right 0.15s; }
+  .layer-toggle.off { background: var(--color-border-secondary); }
+  .layer-toggle.off::after { right: calc(100% - 12px); }
+  .detail-panel { padding: 10px 12px; border-top: 0.5px solid var(--color-border-tertiary); background: var(--color-background-primary); font-size: 12px; }
+  .detail-title { font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+  .detail-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .detail-key { color: var(--color-text-secondary); }
+  .statusbar { padding: 6px 14px; background: var(--color-background-secondary); border-top: 0.5px solid var(--color-border-tertiary); display: flex; align-items: center; gap: 12px; font-size: 11px; color: var(--color-text-secondary); border-radius: 0 0 0 var(--border-radius-lg); }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #2e8b57; display: inline-block; margin-right: 4px; }
+</style>
+
+<div style="border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden;">
+
+<div class="topbar">
+  <div class="topbar-logo">L</div>
+  <div>
+    <div class="topbar h1" style="font-size:14px;font-weight:500;color:#fff;">Municipio de Luján de Cuyo</div>
+    <div class="topbar-sub">Panel de Regulación de Loteos · SIG Municipal</div>
+  </div>
+  <div class="topbar-tabs">
+    <button class="tab active" onclick="setTab(this,'all')">Integral</button>
+    <button class="tab" onclick="setTab(this,'formal')">Formales</button>
+    <button class="tab" onclick="setTab(this,'informal')">Informales</button>
+    <button class="tab" onclick="setTab(this,'proceso')">En proceso</button>
+  </div>
+</div>
+
+<div class="metrics">
+  <div class="metric blue">
+    <div class="metric-label">Total registros</div>
+    <div class="metric-value" id="m-total">716</div>
+    <div class="metric-sub">Actualizado 26/03/2026</div>
+  </div>
+  <div class="metric green">
+    <div class="metric-label">Barrios formales</div>
+    <div class="metric-value" id="m-formal">534</div>
+    <div class="metric-sub">74.6% del total</div>
+  </div>
+  <div class="metric red">
+    <div class="metric-label">Barrios informales</div>
+    <div class="metric-value" id="m-informal">112</div>
+    <div class="metric-sub">15.6% del total</div>
+  </div>
+  <div class="metric amber">
+    <div class="metric-label">En regularización</div>
+    <div class="metric-value" id="m-proceso">70</div>
+    <div class="metric-sub">9.8% del total</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="left-panel">
+    <div class="toolbar">
+      <div class="search-box">
+        <span class="search-icon">&#9906;</span>
+        <input type="text" placeholder="Buscar por nombre, código o distrito..." id="searchInput" oninput="filterTable()">
+      </div>
+      <button class="btn primary" onclick="sendPrompt('Quiero agregar un nuevo loteo al registro municipal. ¿Qué campos necesito completar y cómo vinculo la geometría en PostGIS?')">+ Nuevo registro ↗</button>
+      <button class="btn" onclick="sendPrompt('¿Cómo exporto los loteos filtrados a shapefile desde PostGIS con QGIS?')">Exportar ↗</button>
+    </div>
+
+    <div class="filter-row">
+      <span class="filter-label">Filtros:</span>
+      <select id="f-estado" onchange="filterTable()">
+        <option value="">Estado barrio</option>
+        <option value="FORMAL">Formal aprobado</option>
+        <option value="INFORMAL">Informal</option>
+        <option value="PROCESO">En proceso</option>
+      </select>
+      <select id="f-caract" onchange="filterTable()">
+        <option value="">Característica</option>
+        <option value="PUBLICO">Público</option>
+        <option value="PRIVADO">Privado</option>
+        <option value="BARRERA">Público con barrera</option>
+      </select>
+      <select id="f-categ" onchange="filterTable()">
+        <option value="">Categoría</option>
+        <option value="PARTICULAR">Particular</option>
+        <option value="IPV">IPV</option>
+        <option value="MUNICIPAL">Municipal</option>
+      </select>
+      <select id="f-dist" onchange="filterTable()">
+        <option value="">Distrito</option>
+        <option value="CARRODILLA">Carrodilla</option>
+        <option value="VISTALBA">Vistalba</option>
+        <option value="PERDRIEL">Perdriel</option>
+        <option value="UGARTECHE">Ugarteche</option>
+      </select>
+      <button class="btn" style="font-size:11px;padding:4px 8px;" onclick="clearFilters()">&#x2715; Limpiar</button>
+      <span id="filter-count" style="font-size:11px;color:var(--color-text-tertiary);margin-left:auto;"></span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;"><input type="checkbox" id="chk-all" onchange="toggleAll(this)"></th>
+            <th style="width:48px;" onclick="sortTable('cod')">Cod &#8597;</th>
+            <th style="width:140px;" onclick="sortTable('nombre')">Nombre barrio &#8597;</th>
+            <th style="width:100px;">Estado</th>
+            <th style="width:90px;">Caract.</th>
+            <th style="width:80px;">Categoría</th>
+            <th style="width:80px;">Distrito</th>
+            <th style="width:90px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="statusbar">
+      <span><span class="status-dot"></span>PostGIS conectado</span>
+      <span>&#x1F4BE; PostgreSQL 15 · gis_loteos</span>
+      <span id="row-count" style="margin-left:auto;"></span>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="map-header">
+      <span>Vista espacial</span>
+      <span class="map-badge">OpenStreetMap · EPSG:4326</span>
+    </div>
+    <div class="map-area">
+      <div id="leaflet-map"></div>
+    </div>
+    <div class="map-controls">
+      <div class="map-controls-title">Capas activas</div>
+      <div class="layer-item">
+        <span class="layer-dot" style="background:#1a4a2e;"></span>
+        <span>Loteos formales</span>
+        <span class="layer-toggle" id="l1" onclick="toggleLayer(this)"></span>
+      </div>
+      <div class="layer-item">
+        <span class="layer-dot" style="background:#c0392b;"></span>
+        <span>Loteos informales</span>
+        <span class="layer-toggle" id="l2" onclick="toggleLayer(this)"></span>
+      </div>
+      <div class="layer-item">
+        <span class="layer-dot" style="background:#d4ac0d;"></span>
+        <span>En regularización</span>
+        <span class="layer-toggle" id="l3" onclick="toggleLayer(this)"></span>
+      </div>
+      <div class="layer-item">
+        <span class="layer-dot" style="background:#2980b9;border:1px dashed #2980b9;background:transparent;"></span>
+        <span>Distritos municipales</span>
+        <span class="layer-toggle off" id="l4" onclick="toggleLayer(this)"></span>
+      </div>
+    </div>
+    <div class="detail-panel" id="detail-panel">
+      <div style="color:var(--color-text-tertiary);font-size:12px;text-align:center;padding:8px 0;">Seleccionar un registro para ver detalles</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const DATA = [
+  {cod:1,nombre:"CONI I",estado:"FORMAL",caract:"PUBLICO",categ:"IPV",dist:"PERDRIEL",lat:-33.0280,lng:-68.8820},
+  {cod:2,nombre:"MAURICIO",estado:"FORMAL",caract:"PUBLICO",categ:"PARTICULAR",dist:"CARRODILLA",lat:-33.0150,lng:-68.9120},
+  {cod:3,nombre:"EPA",estado:"FORMAL",caract:"PUBLICO",categ:"PARTICULAR",dist:"CARRODILLA",lat:-33.0200,lng:-68.9090},
+  {cod:4,nombre:"LOYOLA",estado:"FORMAL",caract:"PUBLICO",categ:"PARTICULAR",dist:"CARRODILLA",lat:-33.0230,lng:-68.9060},
+  {cod:5,nombre:"LOS OLIVOS I",estado:"FORMAL",caract:"PUBLICO",categ:"PARTICULAR",dist:"VISTALBA",lat:-33.0300,lng:-68.9200},
+  {cod:6,nombre:"BALCONES DE CARRODILLA",estado:"FORMAL",caract:"BARRERA",categ:"IPV",dist:"CARRODILLA",lat:-33.0180,lng:-68.9150},
+  {cod:7,nombre:"EL HUERTO",estado:"FORMAL",caract:"PRIVADO",categ:"PARTICULAR",dist:"CARRODILLA",lat:-33.0100,lng:-68.9050},
+  {cod:8,nombre:"LOTEO ARMANI",estado:"FORMAL",caract:"PUBLICO",categ:"PARTICULAR",dist:"CARRODILLA",lat:-33.0250,lng:-68.9000},
+  {cod:9,nombre:"JARDIN MIRAFLORES",estado:"FORMAL",caract:"BARRERA",categ:"PARTICULAR",dist:"CARRODILLA",lat:-33.0130,lng:-68.9180},
+  {cod:10,nombre:"SUPE",estado:"FORMAL",caract:"PUBLICO",categ:"PARTICULAR",dist:"CARRODILLA",lat:-33.0190,lng:-68.9210},
+  {cod:11,nombre:"ALTA VISTA",estado:"INFORMAL",caract:"PUBLICO",categ:"PARTICULAR",dist:"PERDRIEL",lat:-33.0350,lng:-68.8750},
+  {cod:12,nombre:"SAN PEDRO I",estado:"INFORMAL",caract:"PUBLICO",categ:"MUNICIPAL",dist:"VISTALBA",lat:-33.0310,lng:-68.9250},
+  {cod:13,nombre:"LA ESPERANZA",estado:"PROCESO",caract:"PUBLICO",categ:"IPV",dist:"UGARTECHE",lat:-33.0450,lng:-68.9000},
+  {cod:14,nombre:"VILLA NUEVA",estado:"INFORMAL",caract:"PRIVADO",categ:"PARTICULAR",dist:"UGARTECHE",lat:-33.0500,lng:-68.8900},
+  {cod:15,nombre:"LOS PINOS",estado:"PROCESO",caract:"PUBLICO",categ:"MUNICIPAL",dist:"PERDRIEL",lat:-33.0400,lng:-68.8800},
+];
+
+let filtered = [...DATA];
+let selectedRow = null;
+let map, markers = [];
+
+function estadoBadge(e) {
+  if(e==='FORMAL') return '<span class="badge formal">Formal aprobado</span>';
+  if(e==='INFORMAL') return '<span class="badge informal">Informal</span>';
+  return '<span class="badge proceso">En proceso</span>';
+}
+function caractBadge(c) {
+  if(c==='PRIVADO') return '<span class="badge priv">Privado</span>';
+  if(c==='BARRERA') return '<span class="badge barrera">Pub. barrera</span>';
+  return '<span class="badge pub">Público</span>';
+}
+
+function renderTable() {
+  const tab = document.getElementById('tableBody');
+  if(!filtered.length){
+    tab.innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--color-text-tertiary);">Sin resultados para los filtros aplicados</td></tr>';
+    document.getElementById('row-count').textContent='0 registros';
+    return;
+  }
+  tab.innerHTML = filtered.map(r=>`
+    <tr onclick="selectRow(${r.cod})" id="tr-${r.cod}">
+      <td><input type="checkbox" class="row-chk"></td>
+      <td style="font-weight:500;color:var(--color-text-secondary);">${r.cod}</td>
+      <td style="font-weight:500;">${r.nombre}</td>
+      <td>${estadoBadge(r.estado)}</td>
+      <td>${caractBadge(r.caract)}</td>
+      <td style="color:var(--color-text-secondary);">${r.categ}</td>
+      <td style="color:var(--color-text-secondary);">${r.dist}</td>
+      <td><div class="actions">
+        <button class="act-btn edit" onclick="event.stopPropagation();sendPrompt('¿Cómo edito el registro ${r.nombre} en PostGIS y actualizo la geometría? ↗')">Ed.</button>
+        <button class="act-btn map" onclick="event.stopPropagation();flyTo(${r.lat},${r.lng})">&#x25CE;</button>
+      </div></td>
+    </tr>`).join('');
+  document.getElementById('row-count').textContent=`Mostrando ${filtered.length} registros`;
+  renderMarkers();
+}
+
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const fe = document.getElementById('f-estado').value;
+  const fc = document.getElementById('f-caract').value;
+  const fcat = document.getElementById('f-categ').value;
+  const fd = document.getElementById('f-dist').value;
+  const tab = document.getElementById('tab-active')||'all';
+  filtered = DATA.filter(r=>{
+    const matchQ = !q || r.nombre.toLowerCase().includes(q) || String(r.cod).includes(q) || r.dist.toLowerCase().includes(q);
+    const matchE = !fe || r.estado===fe;
+    const matchC = !fc || r.caract.includes(fc);
+    const matchCat = !fcat || r.categ===fcat;
+    const matchD = !fd || r.dist===fd;
+    return matchQ && matchE && matchC && matchCat && matchD;
+  });
+  const fc2 = document.getElementById('filter-count');
+  fc2.textContent = filtered.length < DATA.length ? `${filtered.length} de ${DATA.length}` : '';
+  renderTable();
+}
+
+function clearFilters() {
+  document.getElementById('searchInput').value='';
+  ['f-estado','f-caract','f-categ','f-dist'].forEach(id=>document.getElementById(id).value='');
+  filterTable();
+}
+
+let currentTab = 'all';
+function setTab(el, tab) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  currentTab = tab;
+  if(tab==='all') filtered=[...DATA];
+  else if(tab==='formal') filtered=DATA.filter(r=>r.estado==='FORMAL');
+  else if(tab==='informal') filtered=DATA.filter(r=>r.estado==='INFORMAL');
+  else filtered=DATA.filter(r=>r.estado==='PROCESO');
+  clearFilters();
+  renderTable();
+}
+
+function toggleAll(chk) {
+  document.querySelectorAll('.row-chk').forEach(c=>c.checked=chk.checked);
+}
+
+function selectRow(cod) {
+  const r = DATA.find(x=>x.cod===cod);
+  if(!r) return;
+  document.querySelectorAll('tbody tr').forEach(t=>t.classList.remove('selected'));
+  const tr = document.getElementById('tr-'+cod);
+  if(tr) tr.classList.add('selected');
+  showDetail(r);
+  if(map) map.setView([r.lat, r.lng], 15);
+}
+
+function flyTo(lat, lng) {
+  if(map) map.setView([lat, lng], 15);
+}
+
+function showDetail(r) {
+  document.getElementById('detail-panel').innerHTML=`
+    <div class="detail-title">${r.nombre} <span style="font-size:11px;font-weight:400;color:var(--color-text-secondary);">#${r.cod}</span></div>
+    <div class="detail-row"><span class="detail-key">Estado</span><span>${estadoBadge(r.estado)}</span></div>
+    <div class="detail-row"><span class="detail-key">Característica</span><span>${r.caract}</span></div>
+    <div class="detail-row"><span class="detail-key">Categoría</span><span>${r.categ}</span></div>
+    <div class="detail-row"><span class="detail-key">Distrito</span><span>${r.dist}</span></div>
+    <div class="detail-row"><span class="detail-key">Coord.</span><span style="font-size:10px;font-family:var(--font-mono);">${r.lat.toFixed(4)}, ${r.lng.toFixed(4)}</span></div>
+    <button class="btn" style="margin-top:8px;width:100%;font-size:11px;" onclick="sendPrompt('Analizar el loteo ${r.nombre} en Luján de Cuyo: indicadores de regularización, normativa aplicable y pasos para gestión municipal ↗')">Analizar este loteo ↗</button>
+  `;
+}
+
+function getMarkerColor(estado) {
+  if(estado==='FORMAL') return '#1a4a2e';
+  if(estado==='INFORMAL') return '#c0392b';
+  return '#d4ac0d';
+}
+
+function renderMarkers() {
+  markers.forEach(m=>m.remove());
+  markers=[];
+  if(!map) return;
+  filtered.forEach(r=>{
+    const color = getMarkerColor(r.estado);
+    const icon = L.divIcon({
+      html:`<div style="width:12px;height:12px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.4);"></div>`,
+      className:'',iconSize:[12,12],iconAnchor:[6,6]
+    });
+    const m = L.marker([r.lat,r.lng],{icon}).addTo(map)
+      .bindPopup(`<b>${r.nombre}</b><br>${r.dist} · ${r.categ}`);
+    m.on('click',()=>selectRow(r.cod));
+    markers.push(m);
+  });
+}
+
+function toggleLayer(el) {
+  el.classList.toggle('off');
+}
+
+function sortTable(col) {
+  if(col==='cod') filtered.sort((a,b)=>a.cod-b.cod);
+  else if(col==='nombre') filtered.sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  renderTable();
+}
+
+window.addEventListener('load', ()=>{
+  map = L.map('leaflet-map',{zoomControl:true}).setView([-33.03,-68.91],12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'&copy; OpenStreetMap',maxZoom:19
+  }).addTo(map);
+  renderTable();
+});
+
+renderTable();
+</script>
