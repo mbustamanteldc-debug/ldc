@@ -1,0 +1,289 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);color:var(--color-text-primary)}
+h2{font-size:18px;font-weight:500;margin-bottom:1rem;color:var(--color-text-primary)}
+h3{font-size:15px;font-weight:500;margin-bottom:.5rem;color:var(--color-text-primary)}
+p{font-size:14px;line-height:1.6;color:var(--color-text-secondary)}
+.wrap{padding:1rem 0 2rem}
+.section{margin-bottom:2rem}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:3px 10px;border-radius:var(--border-radius-md)}
+.badge-blue{background:#E6F1FB;color:#0C447C}
+.badge-teal{background:#E1F5EE;color:#0F6E56}
+.badge-amber{background:#FAEEDA;color:#854F0B}
+.badge-red{background:#FCEBEB;color:#A32D2D}
+.badge-purple{background:#EEEDFE;color:#3C3489}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:1.5rem}
+.kpi{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.75rem 1rem;text-align:center}
+.kpi-num{font-size:22px;font-weight:500;color:var(--color-text-primary)}
+.kpi-lbl{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.kpi-sub{font-size:11px;color:#0F6E56;font-weight:500;margin-top:2px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:1rem 0}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem}
+.card-icon{font-size:20px;margin-bottom:8px}
+.card h3{font-size:14px}
+.divider{border:none;border-top:0.5px solid var(--color-border-tertiary);margin:1.5rem 0}
+.finding{display:flex;gap:10px;margin-bottom:.75rem;align-items:flex-start}
+.finding-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.dot-green{background:#1D9E75}
+.dot-amber{background:#BA7517}
+.dot-red{background:#E24B4A}
+.dot-blue{background:#378ADD}
+.finding p{font-size:14px;line-height:1.5}
+.trend-row{display:flex;gap:10px;margin-bottom:.65rem;align-items:flex-start;padding:.65rem;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary)}
+.trend-icon{font-size:18px;color:var(--color-text-secondary);flex-shrink:0;margin-top:1px}
+.trend-body{}
+.trend-body strong{font-size:13px;font-weight:500;color:var(--color-text-primary);display:block}
+.trend-body span{font-size:12px;color:var(--color-text-secondary)}
+.roadmap-step{display:flex;gap:12px;margin-bottom:1rem;align-items:flex-start}
+.step-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
+.step-1{background:#E6F1FB;color:#0C447C}
+.step-2{background:#E1F5EE;color:#0F6E56}
+.step-3{background:#EEEDFE;color:#3C3489}
+.step-4{background:#FAEEDA;color:#854F0B}
+.step-body strong{font-size:13px;font-weight:500;color:var(--color-text-primary);display:block;margin-bottom:2px}
+.step-body p{font-size:12px;line-height:1.5}
+.portal-header{display:flex;align-items:center;gap:10px;margin-bottom:.75rem}
+.score-bar-wrap{margin-top:6px}
+.score-bar-bg{background:var(--color-background-secondary);border-radius:4px;height:6px;width:100%}
+.score-bar-fill{border-radius:4px;height:6px}
+.score-lbl{font-size:11px;color:var(--color-text-secondary);margin-top:3px}
+.tag-group{display:flex;flex-wrap:wrap;gap:6px;margin-top:.5rem}
+</style>
+
+<div class="wrap">
+
+<div class="section">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:.75rem">
+  <i class="ti ti-chart-dots" style="font-size:22px;color:#185FA5" aria-hidden="true"></i>
+  <h2 style="margin:0">Diagnóstico: Gobierno Abierto, Datos Abiertos e IDE — Luján de Cuyo 2026</h2>
+</div>
+<p>Relevamiento integral de los tres portales municipales cruzado con tendencias nacionales e internacionales en gobierno abierto y datos espaciales.</p>
+</div>
+
+<div class="kpis">
+  <div class="kpi">
+    <div class="kpi-num">71</div>
+    <div class="kpi-lbl">datasets publicados</div>
+    <div class="kpi-sub">+activos</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-num">2°</div>
+    <div class="kpi-lbl">ranking nacional 2024</div>
+    <div class="kpi-sub">98% — IDACA</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-num">13</div>
+    <div class="kpi-lbl">temas / categorías</div>
+    <div class="kpi-sub">bien distribuidos</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-num">67k</div>
+    <div class="kpi-lbl">visitas y descargas</div>
+    <div class="kpi-sub">demanda real</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-num">3</div>
+    <div class="kpi-lbl">geoservicios OGC</div>
+    <div class="kpi-sub">WMS · WFS · WCS</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-num">CC-BY</div>
+    <div class="kpi-lbl">licencia abierta</div>
+    <div class="kpi-sub">4.0 Internacional</div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<div class="section">
+  <h2>Diagnóstico por portal</h2>
+  <div class="cards">
+
+    <div class="card">
+      <div class="portal-header">
+        <i class="ti ti-building-community" style="font-size:20px;color:#185FA5" aria-hidden="true"></i>
+        <div>
+          <h3>Gobierno Abierto</h3>
+          <span class="badge badge-teal" style="margin-top:4px">Maduro</span>
+        </div>
+      </div>
+      <p style="font-size:13px;margin-bottom:8px">Estructura completa: transparencia, participación, geo portal, datos, IA, innovación, rendición de cuentas, comité de datos. Muy por encima del promedio nacional (37% de municipios).</p>
+      <div class="score-bar-wrap">
+        <div class="score-bar-bg"><div class="score-bar-fill" style="background:#1D9E75;width:85%"></div></div>
+        <div class="score-lbl">Completitud estructural: 85%</div>
+      </div>
+      <div class="tag-group">
+        <span class="badge badge-teal"><i class="ti ti-check" aria-hidden="true"></i> IA declarada</span>
+        <span class="badge badge-teal"><i class="ti ti-check" aria-hidden="true"></i> Comité de Datos</span>
+        <span class="badge badge-teal"><i class="ti ti-check" aria-hidden="true"></i> CC-BY</span>
+        <span class="badge badge-amber"><i class="ti ti-alert-triangle" aria-hidden="true"></i> GIS Luján sin link</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="portal-header">
+        <i class="ti ti-database" style="font-size:20px;color:#185FA5" aria-hidden="true"></i>
+        <div>
+          <h3>Datos Abiertos</h3>
+          <span class="badge badge-blue" style="margin-top:4px">Avanzado</span>
+        </div>
+      </div>
+      <p style="font-size:13px;margin-bottom:8px">71 datasets, 19 dependencias, guías de gobernanza, glosario, guía de usuarios, API expuesta. Participación en City Data Alliance (Bloomberg). Buena política de datos documentada.</p>
+      <div class="score-bar-wrap">
+        <div class="score-bar-bg"><div class="score-bar-fill" style="background:#378ADD;width:78%"></div></div>
+        <div class="score-lbl">Madurez de datos: 78%</div>
+      </div>
+      <div class="tag-group">
+        <span class="badge badge-teal"><i class="ti ti-check" aria-hidden="true"></i> APIs expuestas</span>
+        <span class="badge badge-teal"><i class="ti ti-check" aria-hidden="true"></i> Bloomberg</span>
+        <span class="badge badge-amber"><i class="ti ti-alert-triangle" aria-hidden="true"></i> Sin datos geoespaciales</span>
+        <span class="badge badge-amber"><i class="ti ti-alert-triangle" aria-hidden="true"></i> Sin datos en tiempo real</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="portal-header">
+        <i class="ti ti-map-2" style="font-size:20px;color:#185FA5" aria-hidden="true"></i>
+        <div>
+          <h3>IDE / Geoportal</h3>
+          <span class="badge badge-purple" style="margin-top:4px">En desarrollo</span>
+        </div>
+      </div>
+      <p style="font-size:13px;margin-bottom:8px">Adherida a IDERA. Publica WMS/WFS/WCS, GeoNode, Visor GIS, Luján 3D, Observatorio Territorial. Gran infraestructura técnica. Brecha: los servicios OGC apuntan al entorno QA y no están integrados con el portal de datos.</p>
+      <div class="score-bar-wrap">
+        <div class="score-bar-bg"><div class="score-bar-fill" style="background:#7F77DD;width:62%"></div></div>
+        <div class="score-lbl">Integración IDE-Datos: 62%</div>
+      </div>
+      <div class="tag-group">
+        <span class="badge badge-teal"><i class="ti ti-check" aria-hidden="true"></i> IDERA adherida</span>
+        <span class="badge badge-teal"><i class="ti ti-check" aria-hidden="true"></i> OGC (WMS/WFS/WCS)</span>
+        <span class="badge badge-red"><i class="ti ti-x" aria-hidden="true"></i> WMS/WFS → entorno QA</span>
+        <span class="badge badge-red"><i class="ti ti-x" aria-hidden="true"></i> Datos IDE ≠ Datos Abiertos</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<hr class="divider">
+
+<div class="section">
+  <h2>Fortalezas detectadas</h2>
+  <div class="finding"><div class="finding-dot dot-green"></div><p><strong style="color:var(--color-text-primary)">Posicionamiento nacional de élite:</strong> 2° lugar en el Índice de Datos Abiertos de Ciudades de Argentina 2024 (98%), consolidando a Luján de Cuyo como referente subnacional.</p></div>
+  <div class="finding"><div class="finding-dot dot-green"></div><p><strong style="color:var(--color-text-primary)">Ecosistema institucionalizado:</strong> Existe Comité de Datos, política de datos documentada, gobernanza de datos, guías técnicas y marco normativo. Muy pocos municipios del país tienen este nivel.</p></div>
+  <div class="finding"><div class="finding-dot dot-green"></div><p><strong style="color:var(--color-text-primary)">Reconocimiento internacional:</strong> Participación en City Data Alliance (Bloomberg Philanthropies), lo que posiciona a Luján en redes globales de ciudades data-driven.</p></div>
+  <div class="finding"><div class="finding-dot dot-green"></div><p><strong style="color:var(--color-text-primary)">Infraestructura IDE robusta:</strong> GeoNode operativo, geoservicios OGC (WMS, WFS, WCS), Luján 3D, Visor GIS, y adhesión a IDERA — base técnica sólida y diferenciadora a nivel regional.</p></div>
+  <div class="finding"><div class="finding-dot dot-green"></div><p><strong style="color:var(--color-text-primary)">Agenda de IA adelantada:</strong> La sección "Decisiones Automatizadas y uso de la IA" en el portal de Gobierno Abierto es una señal de madurez institucional que muy pocos municipios tienen explicitada.</p></div>
+  <div class="finding"><div class="finding-dot dot-green"></div><p><strong style="color:var(--color-text-primary)">Licencia CC-BY 4.0:</strong> Licencia abierta correctamente aplicada, habilitando reutilización sin restricciones por parte de la ciudadanía, academia y sector privado.</p></div>
+</div>
+
+<hr class="divider">
+
+<div class="section">
+  <h2>Brechas y oportunidades de mejora</h2>
+
+  <h3 style="margin-bottom:.5rem;color:var(--color-text-secondary);font-size:13px;text-transform:uppercase;letter-spacing:.04em">Técnicas — IDE</h3>
+  <div class="finding"><div class="finding-dot dot-red"></div><p><strong style="color:var(--color-text-primary)">Geoservicios apuntando al entorno QA:</strong> Los links de WMS y WFS en la página de IDE referencian <code>geoportalqa.lujandecuyo.gob.ar</code> en lugar del servidor de producción. Afecta la credibilidad técnica del portal.</p></div>
+  <div class="finding"><div class="finding-dot dot-red"></div><p><strong style="color:var(--color-text-primary)">Silos entre IDE y Datos Abiertos:</strong> Las capas del GeoNode no están enlazadas al catálogo de datasets de <code>datos.lujandecuyo.gob.ar</code>. Un ciudadano no puede pasar de ver una capa en el visor a descargarse los datos. Esta es la brecha central a resolver.</p></div>
+  <div class="finding"><div class="finding-dot dot-amber"></div><p><strong style="color:var(--color-text-primary)">Link "GIS Luján" sin destino:</strong> En la página de Gobierno Abierto la sección "GIS Luján — Sistema de Información Geográfico Inteligente" no tiene hipervínculo. Se pierde una oportunidad clave de visibilidad.</p></div>
+  <div class="finding"><div class="finding-dot dot-amber"></div><p><strong style="color:var(--color-text-primary)">Geoportal de Datos apunta a IGN nacional:</strong> El acceso al "Geoportal de Datos" en la página de Gobierno Abierto dirige a <code>mapamuni.ign.gob.ar</code> (herramienta nacional) en lugar del GeoNode municipal propio.</p></div>
+
+  <h3 style="margin:.75rem 0 .5rem;color:var(--color-text-secondary);font-size:13px;text-transform:uppercase;letter-spacing:.04em">Datos — Contenido</h3>
+  <div class="finding"><div class="finding-dot dot-amber"></div><p><strong style="color:var(--color-text-primary)">Ausencia de datasets geoespaciales en el catálogo:</strong> La categoría "Urbanismo y Territorio" en datos.lujandecuyo.gob.ar no incluye capas descargables en formatos abiertos (GeoJSON, GeoPackage, Shapefile). Los datos espaciales están solo en el GeoNode.</p></div>
+  <div class="finding"><div class="finding-dot dot-amber"></div><p><strong style="color:var(--color-text-primary)">Sin datos en tiempo real ni de sensores:</strong> El portal no publica datos IoT, sensores ambientales ni datos de movilidad en tiempo real. Es la principal tendencia global en portales de datos maduros.</p></div>
+  <div class="finding"><div class="finding-dot dot-amber"></div><p><strong style="color:var(--color-text-primary)">Cobertura de datasets limitada:</strong> 71 datasets en 19 dependencias implica que varias secretarías aún no participan del proceso de apertura. Buenos Aires, referente nacional, publica más de 430 datasets desde 35 organismos.</p></div>
+  <div class="finding"><div class="finding-dot dot-blue"></div><p><strong style="color:var(--color-text-primary)">Metadatos aún básicos:</strong> El portal menciona guías de metadatos pero no es claro si cada dataset cumple con el perfil IDERA o el estándar DCAT-AP, que facilita la cosecha por catálogos nacionales e internacionales.</p></div>
+</div>
+
+<hr class="divider">
+
+<div class="section">
+  <h2>Tendencias nacionales e internacionales relevantes</h2>
+  <div class="trend-row">
+    <i class="ti ti-robot trend-icon" aria-hidden="true"></i>
+    <div class="trend-body">
+      <strong>IA aplicada a datos abiertos</strong>
+      <span>Portales líderes integran asistentes conversacionales para consultar datasets sin necesidad de descargarlos. Tendencia fuerte en Europa (data.europa.eu) y EE.UU. (data.gov). Luján ya menciona IA en su portal — es el momento de darle contenido técnico real.</span>
+    </div>
+  </div>
+  <div class="trend-row">
+    <i class="ti ti-activity trend-icon" aria-hidden="true"></i>
+    <div class="trend-body">
+      <strong>Datos en tiempo real y sensores IoT</strong>
+      <span>La integración de datos de sensores (calidad del aire, tráfico, energía) al portal de datos abiertos es la frontera actual del movimiento open data (Society 5.0). Compatible con iniciativas de detección de baches que el municipio ya tiene en exploración.</span>
+    </div>
+  </div>
+  <div class="trend-row">
+    <i class="ti ti-cube-3d-sphere trend-icon" aria-hidden="true"></i>
+    <div class="trend-body">
+      <strong>Gemelos digitales urbanos (Digital Twins)</strong>
+      <span>Ciudades como Dublín, Singapur y Melbourne integran sus IDE con representaciones 3D dinámicas del territorio. Luján 3D ya es un precursor — la convergencia con datos abiertos lo convierte en un gemelo digital municipal real.</span>
+    </div>
+  </div>
+  <div class="trend-row">
+    <i class="ti ti-share trend-icon" aria-hidden="true"></i>
+    <div class="trend-body">
+      <strong>Interoperabilidad IDE-Datos Abiertos (DCAT-AP + GeoDCAT)</strong>
+      <span>El estándar GeoDCAT-AP (extensión geoespacial del perfil DCAT europeo) permite que los metadatos de una IDE sean cosechables por portales genéricos de datos abiertos. Es la "autopista" técnica para integrar ambos mundos, alineado con IDERA.</span>
+    </div>
+  </div>
+  <div class="trend-row">
+    <i class="ti ti-building trend-icon" aria-hidden="true"></i>
+    <div class="trend-body">
+      <strong>Presupuesto abierto y datos de gasto georreferenciados</strong>
+      <span>El Programa PAD (Fundación País Abierto y Digital, UE) destaca la publicación de ejecución presupuestaria y obras con participación ciudadana. Luján tiene rendición de cuentas pero aún puede añadir la dimensión espacial (¿dónde se gasta?).</span>
+    </div>
+  </div>
+  <div class="trend-row">
+    <i class="ti ti-eye trend-icon" aria-hidden="true"></i>
+    <div class="trend-body">
+      <strong>Observatorios territoriales integrados</strong>
+      <span>La tendencia es que el Observatorio Territorial no sea una página estática sino un tablero con datos actualizados automáticamente desde el PostGIS/GeoNode. Luján tiene la infraestructura técnica para lograrlo con su stack actual.</span>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<div class="section">
+  <h2>Hoja de ruta de integración: Datos Abiertos + IDE</h2>
+
+  <div class="roadmap-step">
+    <div class="step-num step-1">1</div>
+    <div class="step-body">
+      <strong>Correcciones técnicas inmediatas (0–30 días)</strong>
+      <p>Actualizar links WMS/WFS en la página IDE a producción. Redirigir "Geoportal de Datos" al GeoNode propio. Vincular "GIS Luján" al visor. Correcciones menores de alto impacto en credibilidad técnica.</p>
+    </div>
+  </div>
+  <div class="roadmap-step">
+    <div class="step-num step-2">2</div>
+    <div class="step-body">
+      <strong>Publicar capas IDE como datasets abiertos (1–3 meses)</strong>
+      <p>Para cada capa publicada en el GeoNode (parcelas, vías, distritos, etc.) generar un dataset descargable en GeoJSON y GeoPackage dentro del catálogo de datos.lujandecuyo.gob.ar. Aplicar metadatos conformes al perfil IDERA y DCAT.</p>
+    </div>
+  </div>
+  <div class="roadmap-step">
+    <div class="step-num step-3">3</div>
+    <div class="step-body">
+      <strong>Vincular visor al catálogo y al Observatorio (3–6 meses)</strong>
+      <p>Que desde cada capa del GeoNode/Visor el ciudadano pueda ir al dataset correspondiente y viceversa. Conectar el Observatorio Territorial con datos actualizados automáticamente desde PostGIS. Publicar tableros de análisis geoespaciales en el portal de datos.</p>
+    </div>
+  </div>
+  <div class="roadmap-step">
+    <div class="step-num step-4">4</div>
+    <div class="step-body">
+      <strong>Datos en tiempo real y convergencia con IA (6–18 meses)</strong>
+      <p>Exponer datos de sensores (si los hay) o del sistema de baches/movilidad como streams en el portal. Explorar integración GeoDCAT-AP para que las capas IDE sean cosechables por datos.gob.ar y catálogos internacionales. Evaluar asistente conversacional sobre el catálogo. Consolidar el Luján 3D como nodo del gemelo digital municipal.</p>
+    </div>
+  </div>
+</div>
+
+<div style="background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-top:.5rem">
+  <div style="display:flex;gap:10px;align-items:flex-start">
+    <i class="ti ti-bulb" style="font-size:18px;color:#185FA5;flex-shrink:0;margin-top:2px" aria-hidden="true"></i>
+    <p style="font-size:13px"><strong style="color:var(--color-text-primary)">Conclusión del relevamiento:</strong> Luján de Cuyo tiene una base institucional y técnica que la ubica entre los municipios más avanzados del país. La brecha principal no es de infraestructura sino de integración — los dos mundos (Datos Abiertos e IDE) funcionan en paralelo cuando podrían funcionar como un ecosistema único. Resolver eso es la palanca de mayor impacto para el próximo año.</p>
+  </div>
+</div>
+
+</div>
