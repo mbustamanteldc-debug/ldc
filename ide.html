@@ -1,0 +1,325 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+.gn-wrap { font-family: var(--font-sans, sans-serif); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; }
+
+.gn-topbar {
+  background: #0c447c;
+  display: flex; align-items: center;
+  padding: 0 20px; height: 44px; gap: 20px;
+}
+.gn-topbar-logo { display: flex; align-items: center; gap: 8px; color: #fff; font-size: 13px; font-weight: 500; }
+.gn-logo-mark { width: 28px; height: 28px; border-radius: 6px; background: #1D9E75; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: #fff; }
+.gn-topbar-nav { display: flex; gap: 2px; flex: 1; }
+.gn-tnav-item { padding: 6px 12px; font-size: 12px; color: rgba(255,255,255,0.75); border-radius: 6px; cursor: pointer; transition: background .12s; display: flex; align-items: center; gap: 5px; }
+.gn-tnav-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.gn-tnav-item.active { background: rgba(255,255,255,0.15); color: #fff; }
+.gn-tnav-visor {
+  padding: 6px 12px; font-size: 12px; color: #5DCAA5;
+  border-radius: 6px; cursor: pointer; transition: background .12s;
+  display: flex; align-items: center; gap: 5px;
+  border: 0.5px solid rgba(29,158,117,0.35);
+}
+.gn-tnav-visor:hover { background: rgba(29,158,117,0.12); color: #9FE1CB; }
+.gn-topbar-right { display: flex; gap: 8px; align-items: center; }
+.gn-signin { padding: 5px 14px; font-size: 12px; font-weight: 500; background: rgba(255,255,255,0.15); color: #fff; border: 0.5px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer; transition: background .12s; }
+.gn-signin:hover { background: rgba(255,255,255,0.25); }
+.gn-lang { font-size: 11px; color: rgba(255,255,255,0.6); cursor: pointer; display: flex; align-items: center; gap: 3px; }
+
+.gn-hero { background: #042C53; padding: 36px 28px 32px; position: relative; }
+.gn-hero-eyebrow { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.gn-dot { width: 7px; height: 7px; border-radius: 50%; background: #1D9E75; }
+.gn-eyebrow-text { font-size: 11px; color: rgba(255,255,255,0.55); letter-spacing: 0.08em; text-transform: uppercase; }
+.gn-hero h1 { font-size: 22px; font-weight: 500; color: #fff; margin-bottom: 8px; line-height: 1.35; }
+.gn-hero p { font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.65; max-width: 500px; margin-bottom: 20px; }
+.gn-search-row { display: flex; gap: 8px; max-width: 560px; }
+.gn-search { flex: 1; height: 38px; padding: 0 14px; background: rgba(255,255,255,0.1); border: 0.5px solid rgba(255,255,255,0.2); border-radius: 8px; font-size: 13px; color: #fff; outline: none; }
+.gn-search::placeholder { color: rgba(255,255,255,0.4); }
+.gn-search:focus { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.4); }
+.gn-search-btn { height: 38px; padding: 0 16px; background: #1D9E75; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; transition: opacity .12s; }
+.gn-search-btn:hover { opacity: 0.88; }
+.gn-hero-stats { display: flex; gap: 20px; margin-top: 22px; border-top: 0.5px solid rgba(255,255,255,0.1); padding-top: 18px; }
+.gn-hstat { text-align: left; }
+.gn-hstat-num { font-size: 18px; font-weight: 500; color: #fff; }
+.gn-hstat-lbl { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+.gn-idera-badge { position: absolute; top: 20px; right: 24px; background: rgba(29,158,117,0.18); border: 0.5px solid rgba(29,158,117,0.4); border-radius: 8px; padding: 8px 14px; text-align: center; }
+.gn-idera-badge .lbl { font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.08em; }
+.gn-idera-badge .val { font-size: 13px; font-weight: 500; color: #5DCAA5; margin-top: 2px; }
+
+.gn-body { background: var(--color-background-secondary); padding: 20px; }
+.gn-section-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-secondary); margin-bottom: 12px; }
+
+.gn-ok-banner {
+  background: #EAF3DE;
+  border: 0.5px solid #C0DD97;
+  border-radius: var(--border-radius-md);
+  padding: 10px 14px; margin-bottom: 14px;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.gn-ok-text { font-size: 12px; color: #27500A; line-height: 1.5; }
+.gn-ok-text strong { font-weight: 500; display: block; margin-bottom: 2px; }
+.gn-ok-url { font-family: var(--font-mono); font-size: 11px; color: #3B6D11; background: #C0DD97; padding: 2px 7px; border-radius: 4px; display: inline-block; margin-top: 4px; }
+
+.gn-fix-row { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; margin-bottom: 20px; }
+.gn-fix-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 12px; }
+.gn-fix-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; }
+.gn-fix-title { font-size: 12px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 3px; }
+.gn-fix-desc { font-size: 11px; color: var(--color-text-secondary); line-height: 1.45; }
+
+.gn-temas { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.gn-tema { display: flex; align-items: center; gap: 7px; padding: 7px 14px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: 20px; cursor: pointer; font-size: 12px; color: var(--color-text-primary); transition: border-color .12s, background .12s; }
+.gn-tema:hover { border-color: var(--color-border-secondary); background: var(--color-background-secondary); }
+.gn-tema.active { border-color: #185FA5; background: #E6F1FB; color: #0C447C; }
+.gn-tema-dot { width: 8px; height: 8px; border-radius: 50%; }
+.gn-tema-count { font-size: 10px; color: var(--color-text-secondary); background: var(--color-background-secondary); border-radius: 10px; padding: 1px 6px; }
+.gn-tema.active .gn-tema-count { background: #B5D4F4; color: #0C447C; }
+
+.gn-tabs { display: flex; gap: 0; margin-bottom: 14px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.gn-tab { padding: 8px 16px; font-size: 12px; font-weight: 500; color: var(--color-text-secondary); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -0.5px; transition: color .12s; }
+.gn-tab.active { color: #185FA5; border-bottom-color: #185FA5; }
+.gn-tab:hover:not(.active) { color: var(--color-text-primary); }
+
+.gn-featured-row { display: grid; grid-template-columns: minmax(0,2fr) minmax(0,1fr); gap: 10px; margin-bottom: 20px; }
+.gn-feat-main { background: #042C53; border-radius: var(--border-radius-lg); padding: 20px; cursor: pointer; transition: opacity .12s; }
+.gn-feat-main:hover { opacity: 0.95; }
+.gn-feat-tag { font-size: 10px; font-weight: 500; color: #5DCAA5; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; }
+.gn-feat-main h3 { font-size: 15px; font-weight: 500; color: #fff; margin-bottom: 6px; line-height: 1.4; }
+.gn-feat-main p { font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.55; margin-bottom: 14px; }
+.gn-feat-cta { font-size: 12px; font-weight: 500; color: #5DCAA5; }
+.gn-feat-stack { display: flex; flex-direction: column; gap: 10px; }
+.gn-feat-mini { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px; cursor: pointer; flex: 1; transition: border-color .12s; }
+.gn-feat-mini:hover { border-color: var(--color-border-secondary); }
+.gn-feat-mini-tag { font-size: 10px; font-weight: 500; margin-bottom: 5px; }
+.gn-feat-mini h4 { font-size: 12px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 3px; }
+.gn-feat-mini p { font-size: 11px; color: var(--color-text-secondary); line-height: 1.45; }
+
+.gn-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.gn-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; cursor: pointer; transition: border-color .12s; }
+.gn-card:hover { border-color: var(--color-border-secondary); }
+.gn-card-thumb { height: 72px; display: flex; align-items: center; justify-content: center; font-size: 24px; position: relative; }
+.gn-card-type-badge { position: absolute; top: 8px; right: 8px; font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 10px; }
+.gn-card-body { padding: 12px; }
+.gn-card-body h4 { font-size: 12px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 3px; line-height: 1.35; }
+.gn-card-body p { font-size: 11px; color: var(--color-text-secondary); line-height: 1.45; margin-bottom: 8px; }
+.gn-card-footer { display: flex; align-items: center; justify-content: space-between; }
+.gn-card-org { font-size: 10px; color: var(--color-text-secondary); }
+.gn-card-views { font-size: 10px; color: var(--color-text-secondary); }
+
+.gn-separator { height: 0.5px; background: var(--color-border-tertiary); margin: 20px 0; }
+
+.gn-footer { background: #042C53; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; }
+.gn-footer-left { display: flex; align-items: center; gap: 10px; }
+.gn-footer-logo { display: flex; align-items: center; gap: 7px; }
+.gn-footer-logo-mark { width: 22px; height: 22px; border-radius: 5px; background: #1D9E75; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 500; color: #fff; }
+.gn-footer-logo span { font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.8); }
+.gn-footer-sep { width: 0.5px; height: 18px; background: rgba(255,255,255,0.15); }
+.gn-footer-links { display: flex; gap: 14px; }
+.gn-footer-link { font-size: 11px; color: rgba(255,255,255,0.45); cursor: pointer; }
+.gn-footer-link:hover { color: rgba(255,255,255,0.75); }
+.gn-footer-right { font-size: 11px; color: rgba(255,255,255,0.3); }
+</style>
+
+<h2 style="position:absolute;width:1px;height:1px;overflow:hidden">GeoNode personalizado con Visor GIS corregido</h2>
+
+<div class="gn-wrap">
+
+  <div class="gn-topbar">
+    <div class="gn-topbar-logo">
+      <div class="gn-logo-mark">LDC</div>
+      <span>Geoportal IDE</span>
+    </div>
+    <nav class="gn-topbar-nav">
+      <div class="gn-tnav-item active">Datos ▾</div>
+      <div class="gn-tnav-item">Mapas</div>
+      <div class="gn-tnav-item">GeoStories</div>
+      <div class="gn-tnav-item">Dashboards</div>
+      <div class="gn-tnav-item">Destacados</div>
+      <a class="gn-tnav-visor" href="https://visorgis.lujandecuyo.gob.ar/#/" style="text-decoration:none">
+        Visor GIS ↗
+      </a>
+    </nav>
+    <div class="gn-topbar-right">
+      <div class="gn-lang">ES ▾</div>
+      <button class="gn-signin">Ingresar</button>
+    </div>
+  </div>
+
+  <div class="gn-hero">
+    <div class="gn-idera-badge">
+      <div class="lbl">Adherido a</div>
+      <div class="val">IDERA</div>
+    </div>
+    <div class="gn-hero-eyebrow">
+      <div class="gn-dot"></div>
+      <span class="gn-eyebrow-text">Municipalidad de Luján de Cuyo · Mendoza</span>
+    </div>
+    <h1>Geoportal de datos espaciales</h1>
+    <p>Explorá, descargá y reutilizá información geográfica del departamento. Datasets, mapas temáticos, GeoStories y servicios OGC bajo licencia abierta CC BY 4.0.</p>
+    <div class="gn-search-row">
+      <input class="gn-search" type="text" placeholder="Buscar datasets, mapas, documentos...">
+      <button class="gn-search-btn">Buscar</button>
+    </div>
+    <div class="gn-hero-stats">
+      <div class="gn-hstat"><div class="gn-hstat-num">124</div><div class="gn-hstat-lbl">Capas publicadas</div></div>
+      <div class="gn-hstat"><div class="gn-hstat-num">38</div><div class="gn-hstat-lbl">Mapas</div></div>
+      <div class="gn-hstat"><div class="gn-hstat-num">12</div><div class="gn-hstat-lbl">GeoStories</div></div>
+      <div class="gn-hstat"><div class="gn-hstat-num">5</div><div class="gn-hstat-lbl">Dashboards</div></div>
+    </div>
+  </div>
+
+  <div class="gn-body">
+
+    <div class="gn-ok-banner">
+      <div class="gn-ok-text">
+        <strong>Enlace del Visor GIS corregido</strong>
+        El menú de navegación ahora apunta a la URL pública correcta:
+        <span class="gn-ok-url">https://visorgis.lujandecuyo.gob.ar/#/</span>
+      </div>
+    </div>
+
+    <div class="gn-section-title">Pendientes restantes</div>
+    <div class="gn-fix-row">
+      <div class="gn-fix-card" style="border-color:#9FE1CB">
+        <div class="gn-fix-label" style="color:#1D9E75">Resuelto</div>
+        <div class="gn-fix-title">URL del Visor GIS</div>
+        <div class="gn-fix-desc">Enlace público activo en el menú de navegación.</div>
+      </div>
+      <div class="gn-fix-card">
+        <div class="gn-fix-label" style="color:#854F0B">Pendiente</div>
+        <div class="gn-fix-title">Idioma de la interfaz</div>
+        <div class="gn-fix-desc">Configurar <code style="font-size:10px;background:var(--color-background-secondary);padding:1px 4px;border-radius:4px">LANGUAGE_CODE = 'es'</code> en el admin de GeoNode.</div>
+      </div>
+      <div class="gn-fix-card">
+        <div class="gn-fix-label" style="color:#854F0B">Pendiente</div>
+        <div class="gn-fix-title">Personalización de marca</div>
+        <div class="gn-fix-desc">Logo, colores, texto de bienvenida y descripción del portal.</div>
+      </div>
+    </div>
+
+    <div class="gn-separator"></div>
+
+    <div class="gn-section-title">Explorar por tema</div>
+    <div class="gn-temas">
+      <div class="gn-tema active" onclick="filterTema(this,'agua')"><span class="gn-tema-dot" style="background:#378ADD"></span>Aguas<span class="gn-tema-count">18</span></div>
+      <div class="gn-tema" onclick="filterTema(this,'obras')"><span class="gn-tema-dot" style="background:#BA7517"></span>Obras y EP<span class="gn-tema-count">24</span></div>
+      <div class="gn-tema" onclick="filterTema(this,'cercania')"><span class="gn-tema-dot" style="background:#D4537E"></span>Cercanía<span class="gn-tema-count">11</span></div>
+      <div class="gn-tema" onclick="filterTema(this,'urbanismo')"><span class="gn-tema-dot" style="background:#534AB7"></span>Urbanismo<span class="gn-tema-count">31</span></div>
+      <div class="gn-tema" onclick="filterTema(this,'ambiente')"><span class="gn-tema-dot" style="background:#3B6D11"></span>Ambiente<span class="gn-tema-count">15</span></div>
+      <div class="gn-tema" onclick="filterTema(this,'catastro')"><span class="gn-tema-dot" style="background:#993C1D"></span>Catastro<span class="gn-tema-count">25</span></div>
+    </div>
+
+    <div class="gn-section-title">Destacados</div>
+    <div class="gn-featured-row">
+      <div class="gn-feat-main" onclick="sendPrompt('Contame más sobre el dataset de red hídrica de Luján de Cuyo')">
+        <div class="gn-feat-tag">GeoStory destacada</div>
+        <h3>Red hídrica y sistema de riego de Luján de Cuyo</h3>
+        <p>Visualización interactiva del sistema de canales, acequias y fuentes de agua del departamento. Datos actualizados 2024.</p>
+        <div class="gn-feat-cta">Ver GeoStory →</div>
+      </div>
+      <div class="gn-feat-stack">
+        <div class="gn-feat-mini" onclick="sendPrompt('Contame sobre el mapa de ordenamiento territorial de Luján de Cuyo')">
+          <div class="gn-feat-mini-tag" style="color:#534AB7">Mapa</div>
+          <h4>Ordenamiento territorial</h4>
+          <p>Zonificación y usos del suelo departamentales.</p>
+        </div>
+        <div class="gn-feat-mini" onclick="sendPrompt('Contame sobre el dashboard de obras públicas de Luján de Cuyo')">
+          <div class="gn-feat-mini-tag" style="color:#BA7517">Dashboard</div>
+          <h4>Obras públicas en ejecución</h4>
+          <p>Estado y ubicación de obras activas en el departamento.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="gn-section-title">Catálogo de datos</div>
+    <div class="gn-tabs">
+      <div class="gn-tab active" onclick="switchTab(this)">Datasets</div>
+      <div class="gn-tab" onclick="switchTab(this)">Mapas</div>
+      <div class="gn-tab" onclick="switchTab(this)">GeoStories</div>
+      <div class="gn-tab" onclick="switchTab(this)">Documentos</div>
+      <div class="gn-tab" onclick="switchTab(this)">Dashboards</div>
+    </div>
+
+    <div class="gn-grid">
+      <div class="gn-card" onclick="sendPrompt('Dame información sobre el dataset de canales de riego de Luján de Cuyo')">
+        <div class="gn-card-thumb" style="background:#E6F1FB"><span style="font-size:24px">💧</span><span class="gn-card-type-badge" style="background:#B5D4F4;color:#0C447C">Dataset</span></div>
+        <div class="gn-card-body">
+          <h4>Canales de riego — red principal</h4>
+          <p>Trazado vectorial de la red de canales y acequias del departamento.</p>
+          <div class="gn-card-footer"><span class="gn-card-org">IDE Luján de Cuyo</span><span class="gn-card-views">342 vistas</span></div>
+        </div>
+      </div>
+      <div class="gn-card" onclick="sendPrompt('Dame información sobre el dataset de catastro parcelario de Luján de Cuyo')">
+        <div class="gn-card-thumb" style="background:#FAECE7"><span style="font-size:24px">🏗️</span><span class="gn-card-type-badge" style="background:#F5C4B3;color:#712B13">Dataset</span></div>
+        <div class="gn-card-body">
+          <h4>Catastro parcelario urbano</h4>
+          <p>Parcelas urbanas con atributos catastrales. Actualización 2024.</p>
+          <div class="gn-card-footer"><span class="gn-card-org">Dirección de Catastro</span><span class="gn-card-views">518 vistas</span></div>
+        </div>
+      </div>
+      <div class="gn-card" onclick="sendPrompt('Dame información sobre el dataset de distritos de Luján de Cuyo')">
+        <div class="gn-card-thumb" style="background:#EEEDFE"><span style="font-size:24px">🗺️</span><span class="gn-card-type-badge" style="background:#CECBF6;color:#3C3489">Dataset</span></div>
+        <div class="gn-card-body">
+          <h4>Límites distritales — Luján de Cuyo</h4>
+          <p>Polígonos de los 13 distritos del departamento.</p>
+          <div class="gn-card-footer"><span class="gn-card-org">IDE Luján de Cuyo</span><span class="gn-card-views">891 vistas</span></div>
+        </div>
+      </div>
+      <div class="gn-card" onclick="sendPrompt('Dame información sobre el dataset de vialidad de Luján de Cuyo')">
+        <div class="gn-card-thumb" style="background:#EAF3DE"><span style="font-size:24px">🛣️</span><span class="gn-card-type-badge" style="background:#C0DD97;color:#27500A">Dataset</span></div>
+        <div class="gn-card-body">
+          <h4>Red vial departamental</h4>
+          <p>Calles, rutas y accesos con categorización y estado.</p>
+          <div class="gn-card-footer"><span class="gn-card-org">Obras Públicas</span><span class="gn-card-views">276 vistas</span></div>
+        </div>
+      </div>
+      <div class="gn-card" onclick="sendPrompt('Dame información sobre el dataset de áreas verdes de Luján de Cuyo')">
+        <div class="gn-card-thumb" style="background:#E1F5EE"><span style="font-size:24px">🌿</span><span class="gn-card-type-badge" style="background:#9FE1CB;color:#085041">Dataset</span></div>
+        <div class="gn-card-body">
+          <h4>Áreas verdes y espacios públicos</h4>
+          <p>Parques, plazas y espacios verdes geolocalizados.</p>
+          <div class="gn-card-footer"><span class="gn-card-org">Desarrollo Urbano</span><span class="gn-card-views">193 vistas</span></div>
+        </div>
+      </div>
+      <div class="gn-card" onclick="sendPrompt('Dame información sobre el dataset de obras en ejecución de Luján de Cuyo')">
+        <div class="gn-card-thumb" style="background:#FAEEDA"><span style="font-size:24px">🏛️</span><span class="gn-card-type-badge" style="background:#FAC775;color:#633806">Dataset</span></div>
+        <div class="gn-card-body">
+          <h4>Obras públicas en ejecución</h4>
+          <p>Ubicación y estado de proyectos de infraestructura activos.</p>
+          <div class="gn-card-footer"><span class="gn-card-org">Secretaría de Obras</span><span class="gn-card-views">147 vistas</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="gn-footer">
+    <div class="gn-footer-left">
+      <div class="gn-footer-logo">
+        <div class="gn-footer-logo-mark">LDC</div>
+        <span>IDE Luján de Cuyo</span>
+      </div>
+      <div class="gn-footer-sep"></div>
+      <div class="gn-footer-links">
+        <span class="gn-footer-link">Términos de uso</span>
+        <span class="gn-footer-link">API</span>
+        <span class="gn-footer-link">Contacto</span>
+        <span class="gn-footer-link">IDERA</span>
+      </div>
+    </div>
+    <div class="gn-footer-right">CC BY 4.0 · Municipalidad de Luján de Cuyo</div>
+  </div>
+
+</div>
+
+<script>
+function filterTema(el, tema) {
+  document.querySelectorAll('.gn-tema').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  sendPrompt('Mostrá los datasets del tema "' + tema + '" del GeoNode de Luján de Cuyo');
+}
+function switchTab(el) {
+  document.querySelectorAll('.gn-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+</script>
