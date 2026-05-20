@@ -3,711 +3,1993 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Municipalidad de Luján de Cuyo - SIOT + Catastro</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>S.I.O.T. — Visor Catastral | Luján de Cuyo</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <link class="sub-step" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
 
     <style>
-        :root { 
-            --mun-amarillo: #ffbf00; 
-            --bg-main: #020617;
-            --bg-sidebar: #0f172a;
-            --bg-card: #1e293b;
-            --bg-input: #020617;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #1e293b;
+        :root {
+            --gold: #ffbf00;
+            --bg-base: #050f1e;
+            --bg-panel: #091626;
+            --bg-card: #0d1f35;
+            --bg-elevated: #132640;
+            --bg-input: #060d18;
+            --border: rgba(255,191,0,0.14);
+            --border-sub: rgba(148,163,184,0.1);
+            --text-1: #e2e8f0;
+            --text-2: #94a3b8;
+            --text-3: #4a6080;
         }
-        
-        .light-theme {
-            --bg-main: #f1f5f9;
-            --bg-sidebar: #ffffff;
+        .lm {
+            --bg-base: #f0f4f8;
+            --bg-panel: #ffffff;
             --bg-card: #f8fafc;
+            --bg-elevated: #edf2f7;
             --bg-input: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --border-color: #cbd5e1;
+            --border: rgba(255,191,0,0.3);
+            --border-sub: rgba(15,23,42,0.1);
+            --text-1: #0f172a;
+            --text-2: #475569;
+            --text-3: #94a3b8;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; overflow: hidden; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-base);
+            color: var(--text-1);
+            transition: background .3s, color .3s;
         }
 
-        body { background-color: var(--bg-main); color: var(--text-main); transition: background-color 0.3s, color 0.3s; }
-        aside { background-color: var(--bg-sidebar); border-color: var(--border-color); }
-        .theme-card { background-color: var(--bg-card); border-color: var(--border-color); }
-        .theme-input { background-color: var(--bg-input); border-color: var(--border-color); color: var(--text-main); }
-        .theme-text-muted { color: var(--text-muted); }
+        /* ── HEADER ── */
+        #header {
+            height: 54px;
+            background: linear-gradient(90deg, #030c1a 0%, #091626 100%);
+            border-bottom: 1px solid rgba(255,191,0,0.18);
+            box-shadow: 0 4px 28px rgba(0,0,0,.5);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 16px; position: relative; z-index: 200;
+        }
+        #header::after {
+            content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, var(--gold) 0%, transparent 55%);
+        }
+        .lm #header { background: linear-gradient(90deg, #1e293b 0%, #334155 100%); }
+        .hdr-logo {
+            background: #040b16; border: 1px solid rgba(255,191,0,.18);
+            border-radius: 8px; padding: 3px 8px; display: flex; align-items: center;
+        }
+        .hdr-logo img { height: 36px; width: auto; object-fit: contain; }
+        .hdr-title { font-size: 13px; font-weight: 900; letter-spacing: .04em; color: #e2e8f0; text-transform: uppercase; line-height: 1; }
+        .hdr-sub   { font-size: 10px; font-weight: 600; color: var(--gold); letter-spacing: .1em; text-transform: uppercase; margin-top: 2px; opacity: .85; }
+        .hdr-chip {
+            background: rgba(255,191,0,.08); border: 1px solid rgba(255,191,0,.2);
+            border-radius: 6px; padding: 4px 10px; font-size: 10px; font-weight: 700;
+            color: var(--gold); display: flex; align-items: center; gap: 5px;
+        }
+        .hdr-btn {
+            background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+            border-radius: 7px; padding: 5px 12px; color: #94a3b8; font-size: 10px;
+            font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;
+            letter-spacing: .05em; text-transform: uppercase; transition: all .2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .hdr-btn:hover { background: rgba(255,255,255,.1); color: #e2e8f0; }
+        .hdr-btn-red {
+            background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.25);
+            color: #f87171; text-decoration: none;
+        }
+        .hdr-btn-red:hover { background: rgba(239,68,68,.2); }
+        .hdr-sep { width: 1px; height: 24px; background: rgba(255,255,255,.08); margin: 0 4px; }
 
-        #map { height: calc(100vh - 80px); width: 100%; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: var(--mun-amarillo); border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background-color: var(--bg-main); }
+        /* ── LAYOUT ── */
+        #layout { display: flex; height: calc(100vh - 54px); }
+
+        /* ── SIDEBAR ── */
+        #sidebar {
+            width: 380px; flex-shrink: 0;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            overflow: hidden; z-index: 100;
+            transition: width .28s cubic-bezier(.4,0,.2,1);
+        }
+        #sidebar.collapsed { width: 0; border-right: none; }
+        #btn-sidebar {
+            background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+            border-radius: 7px; padding: 5px 10px; color: #94a3b8;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 13px; transition: all .2s;
+        }
+        #btn-sidebar:hover { background: rgba(255,255,255,.1); color: #e2e8f0; }
+        #btn-sidebar.active { color: var(--gold); border-color: rgba(255,191,0,.35); background: rgba(255,191,0,.08); }
+
+        /* ── CONTROL CUSTOM (capas + leyenda) ── */
+        .map-ctrl-wrap {
+            background: rgba(5,15,30,0.93);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255,191,0,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+            width: 230px;
+            margin-bottom: 30px !important;
+            font-family: 'Inter', sans-serif;
+        }
+        .lm .map-ctrl-wrap {
+            background: rgba(255,255,255,0.96);
+            border-color: rgba(255,191,0,0.35);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+        }
+        .ctrl-hdr {
+            padding: 9px 12px;
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(255,191,0,0.08);
+            border-bottom: 1px solid rgba(255,191,0,0.15);
+            cursor: pointer; user-select: none;
+        }
+        .lm .ctrl-hdr { background: rgba(255,191,0,0.06); }
+        .ctrl-hdr-title {
+            font-size: 9px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: .1em; color: var(--gold);
+            display: flex; align-items: center; gap: 5px;
+        }
+        .ctrl-chev { color: var(--text-3); font-size: 10px; transition: transform .25s; }
+        .ctrl-body { padding: 11px 12px; display: flex; flex-direction: column; gap: 11px; }
+        .ctrl-sec-title {
+            font-size: 9px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: .1em; color: var(--text-3); margin-bottom: 6px;
+        }
+        .ctrl-radios { display: flex; gap: 6px; flex-wrap: wrap; }
+        .ctrl-checks { display: flex; flex-direction: column; gap: 5px; }
+        .ctrl-opt {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 11px; font-weight: 500; color: var(--text-2);
+            cursor: pointer; transition: color .15s;
+        }
+        .ctrl-opt:hover { color: var(--text-1); }
+        .ctrl-opt input { accent-color: var(--gold); cursor: pointer; width: 13px; height: 13px; }
+        .ctrl-div { height: 1px; background: var(--border-sub); }
+        .ctrl-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 6px; }
+        .ctrl-leg-item { display: flex; align-items: center; gap: 5px; min-width: 0; }
+        .ctrl-leg-dot  { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; opacity: .88; }
+        .ctrl-leg-lbl  { font-size: 9.5px; font-weight: 500; color: var(--text-2); line-height: 1.25;
+                         white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* ── SEARCH ── */
+        #search-wrap {
+            padding: 10px 12px; border-bottom: 1px solid var(--border-sub);
+            background: var(--bg-base); display: flex; align-items: center; gap: 6px;
+        }
+        .search-rel { position: relative; flex: 1; }
+        .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--gold); font-size: 10px; pointer-events: none; }
+        input.sbar {
+            width: 100%; background: var(--bg-input); border: 1px solid var(--border-sub);
+            color: var(--text-1); border-radius: 7px; padding: 7px 10px 7px 30px;
+            font-size: 12px; font-family: 'Inter', sans-serif; outline: none;
+            transition: border-color .2s;
+        }
+        input.sbar:focus { border-color: var(--gold); }
+        input.sbar::placeholder { color: var(--text-3); }
+        input.sbar:disabled { opacity: .45; cursor: not-allowed; }
+        #btn-loading { display: none; background: transparent; border: none; padding: 5px; }
+        .spinner {
+            display: inline-block; width: 14px; height: 14px;
+            border: 2px solid rgba(255,191,0,.2); border-top-color: var(--gold);
+            border-radius: 50%; animation: spin .7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .icon-btn {
+            background: var(--bg-elevated); border: 1px solid var(--border-sub);
+            border-radius: 7px; width: 32px; height: 32px; color: var(--text-2);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 11px; transition: all .2s; flex-shrink: 0;
+        }
+        .icon-btn:hover { color: var(--text-1); border-color: var(--gold); }
+
+        /* ── TABS ── */
+        #tab-bar {
+            display: flex; border-bottom: 1px solid var(--border-sub);
+            background: var(--bg-base);
+        }
+        .tab {
+            flex: 1; padding: 9px 0; font-size: 10px; font-weight: 700;
+            letter-spacing: .07em; text-transform: uppercase; border: none;
+            background: transparent; color: var(--text-3); cursor: pointer;
+            border-bottom: 2px solid transparent; transition: all .2s;
+            display: flex; align-items: center; justify-content: center; gap: 4px;
+            font-family: 'Inter', sans-serif;
+        }
+        .tab:hover { color: var(--text-2); }
+        .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+        .tab-badge {
+            background: rgba(255,191,0,.15); color: var(--gold);
+            border: 1px solid rgba(255,191,0,.3); border-radius: 20px;
+            padding: 0 5px; font-size: 9px; font-weight: 800; min-width: 18px;
+            text-align: center; display: none;
+        }
+
+        /* ── PANELS ── */
+        .panel {
+            flex: 1; overflow-y: auto; padding: 12px;
+            display: none;
+        }
+        .panel.active { display: block; }
+        .panel::-webkit-scrollbar { width: 4px; }
+        .panel::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
+        .panel::-webkit-scrollbar-track { background: transparent; }
+
+        /* ── PLACEHOLDER ── */
+        .ph {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; min-height: 280px; text-align: center;
+            padding: 24px; color: var(--text-3); gap: 10px;
+        }
+        .ph-icon {
+            width: 48px; height: 48px; border-radius: 50%;
+            background: var(--bg-elevated); border: 1px solid var(--border-sub);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; color: var(--text-3);
+        }
+        .ph-title  { font-size: 12px; font-weight: 600; color: var(--text-2); }
+        .ph-body   { font-size: 11px; line-height: 1.55; }
+
+        /* ── CARDS ── */
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border-sub);
+            border-radius: 10px; overflow: hidden; margin-bottom: 10px;
+        }
+        .card-hdr {
+            padding: 7px 12px; border-bottom: 1px solid var(--border-sub);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .card-title {
+            font-size: 9px; font-weight: 800; letter-spacing: .1em;
+            text-transform: uppercase; color: var(--gold);
+            display: flex; align-items: center; gap: 5px;
+        }
+        .card-body { padding: 10px 12px; }
+
+        /* ── FIELD / METRIC ── */
+        .field { display: flex; flex-direction: column; gap: 2px; }
+        .fl { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); }
+        .fv { font-size: 12px; font-weight: 600; color: var(--text-1); }
+        .fv.mono { font-family: 'Courier New', monospace; }
+        .fv.hl   { color: var(--gold); }
+        .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+        .mbox {
+            background: var(--bg-elevated); border: 1px solid var(--border-sub);
+            border-radius: 8px; padding: 10px;
+        }
+        .mbox .ml { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); margin-bottom: 4px; }
+        .mbox .mv { font-size: 18px; font-weight: 900; color: var(--text-1); line-height: 1; }
+        .mbox .mu { font-size: 9px; color: var(--text-2); font-weight: 500; margin-top: 2px; }
+        .rbox {
+            background: var(--bg-elevated); border: 1px solid var(--border-sub);
+            border-radius: 8px; padding: 8px; text-align: center;
+        }
+        .rbox .rl { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--text-3); margin-bottom: 3px; }
+        .rbox .rv { font-size: 16px; font-weight: 900; color: var(--text-1); line-height: 1; }
+        .rbox .ru { font-size: 9px; color: var(--text-3); }
+
+        /* ── PROGRESS ── */
+        .prog-track { height: 4px; background: var(--bg-elevated); border-radius: 4px; overflow: hidden; }
+        .prog-bar   { height: 100%; border-radius: 4px; transition: width .5s cubic-bezier(.4,0,.2,1); }
+
+        /* ── PILLS / TAGS ── */
+        .pill {
+            display: inline-flex; align-items: center; gap: 3px;
+            padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700;
+        }
+        .pill-sky   { background: rgba(56,189,248,.1); color: #38bdf8; border: 1px solid rgba(56,189,248,.25); }
+        .pill-green { background: rgba(16,185,129,.1); color: #34d399; border: 1px solid rgba(16,185,129,.25); }
+        .pill-amber { background: rgba(245,158,11,.1); color: #fbbf24; border: 1px solid rgba(245,158,11,.25); }
+        .pill-red   { background: rgba(239,68,68,.1);  color: #f87171; border: 1px solid rgba(239,68,68,.25); }
+        .pill-slate { background: rgba(100,116,139,.1); color: #94a3b8; border: 1px solid rgba(100,116,139,.25); }
+
+        .tag {
+            display: inline-flex; align-items: center; gap: 3px; font-size: 9px;
+            font-weight: 700; padding: 2px 7px; border-radius: 4px;
+            text-transform: uppercase; letter-spacing: .05em;
+        }
+        .tag-teal   { background: rgba(20,184,166,.1); color: #2dd4bf; border: 1px solid rgba(20,184,166,.25); }
+        .tag-orange { background: rgba(249,115,22,.1); color: #fb923c; border: 1px solid rgba(249,115,22,.25); }
+        .tag-purple { background: rgba(168,85,247,.1); color: #c084fc; border: 1px solid rgba(168,85,247,.25); }
+
+        /* ── USE ITEMS ── */
+        .use-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 7px 10px; border-radius: 6px; background: var(--bg-elevated);
+            border: 1px solid var(--border-sub); gap: 8px; margin-bottom: 4px;
+        }
+        .use-item:last-child { margin-bottom: 0; }
+        .use-name { font-size: 11px; font-weight: 500; color: var(--text-1); line-height: 1.3; }
+        .use-badges { display: flex; gap: 4px; flex-shrink: 0; }
+        .art-badge {
+            font-size: 9px; font-weight: 700; font-family: monospace;
+            background: rgba(245,158,11,.1); color: #fbbf24;
+            border: 1px solid rgba(245,158,11,.25); border-radius: 4px; padding: 1px 5px;
+        }
+        .uea-badge {
+            font-size: 9px; font-weight: 700; background: rgba(20,184,166,.1); color: #2dd4bf;
+            border: 1px solid rgba(20,184,166,.25); border-radius: 4px; padding: 1px 5px;
+            display: flex; align-items: center; gap: 3px;
+        }
+
+        /* ── ACCORDION ── */
+        .acc-wrap { border: 1px solid var(--border-sub); border-radius: 8px; overflow: hidden; margin-bottom: 6px; }
+        .acc-btn {
+            width: 100%; background: var(--bg-elevated); border: none;
+            padding: 9px 12px; display: flex; align-items: center;
+            justify-content: space-between; cursor: pointer; text-align: left; gap: 8px;
+            transition: filter .15s; font-family: 'Inter', sans-serif;
+        }
+        .acc-btn:hover { filter: brightness(1.15); }
+        .acc-rubro {
+            font-size: 10px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: .06em; color: var(--text-1);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .acc-count {
+            font-size: 9px; font-weight: 700; background: var(--bg-card);
+            border: 1px solid var(--border-sub); border-radius: 20px;
+            padding: 2px 7px; color: var(--text-2); white-space: nowrap; flex-shrink: 0;
+        }
+        .acc-body {
+            display: none; padding: 6px; background: var(--bg-card);
+            border-top: 1px solid var(--border-sub);
+        }
+
+        /* ── SECTION HEADERS (uses) ── */
+        .uses-section { border-radius: 8px; overflow: hidden; margin-bottom: 8px; }
+        .uses-section-hdr {
+            padding: 9px 12px; display: flex; align-items: center;
+            justify-content: space-between; border-bottom-width: 1px; border-bottom-style: solid;
+        }
+        .uses-section-title { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; display: flex; align-items: center; gap: 5px; }
+        .uses-count { font-size: 10px; font-weight: 800; border-radius: 20px; padding: 2px 8px; }
+        .uses-body { padding: 6px; }
+
+        /* ── MAP ── */
+        #main { flex: 1; position: relative; min-height: 0; }
+        #map  { position: absolute; inset: 0; }
+
+        /* ── STATUS BAR ── */
+        #status-bar {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 26px;
+            background: rgba(5,15,30,.88); backdrop-filter: blur(8px);
+            border-top: 1px solid var(--border-sub);
+            display: flex; align-items: center; padding: 0 12px; gap: 14px;
+            font-size: 10px; color: var(--text-3); z-index: 50;
+        }
+        .lm #status-bar { background: rgba(248,250,252,.92); }
+        #sb-sep { color: var(--border-sub); }
+
+        /* ── TOAST ── */
+        #toast {
+            position: fixed; bottom: 36px; right: 16px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 10px; padding: 10px 16px; font-size: 12px; color: var(--text-1);
+            box-shadow: 0 8px 32px rgba(0,0,0,.4); z-index: 9999;
+            opacity: 0; transform: translateY(8px); transition: all .3s; pointer-events: none;
+        }
+        #toast.show { opacity: 1; transform: translateY(0); }
+
+        /* ── LEAFLET OVERRIDES ── */
+        .leaflet-interactive:focus { outline: none; }
+        .leaflet-tooltip {
+            background: rgba(5,15,30,.95) !important;
+            border: 1px solid rgba(255,191,0,.3) !important;
+            color: #e2e8f0 !important; font-size: 11px !important;
+            padding: 6px 10px !important; border-radius: 6px !important;
+            box-shadow: 0 4px 16px rgba(0,0,0,.4) !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        .leaflet-tooltip::before { display: none !important; }
+        .lm .leaflet-tooltip {
+            background: rgba(255,255,255,.97) !important; color: #0f172a !important;
+        }
         .leaflet-grab { cursor: crosshair !important; }
+
+        /* ── DIVIDER ── */
+        .divider { height: 1px; background: var(--border-sub); margin: 10px 0; }
+
+        /* ── CHAT ── */
+        #chat-fab {
+            position: absolute; bottom: 40px; left: 16px; z-index: 500;
+            width: 44px; height: 44px; border-radius: 50%;
+            background: var(--gold); border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; color: #030c1a;
+            box-shadow: 0 4px 20px rgba(255,191,0,0.4);
+            transition: transform .2s, box-shadow .2s;
+        }
+        #chat-fab:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(255,191,0,0.55); }
+        #chat-fab.has-context { animation: pulse-gold 2.5s infinite; }
+        @keyframes pulse-gold {
+            0%, 100% { box-shadow: 0 4px 20px rgba(255,191,0,0.4); }
+            50%       { box-shadow: 0 4px 30px rgba(255,191,0,0.75); }
+        }
+        #chat-panel {
+            position: absolute; bottom: 96px; left: 16px; z-index: 500;
+            width: 380px; max-height: 560px;
+            background: rgba(5,15,30,0.96); backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,191,0,0.22); border-radius: 14px;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.55);
+            display: none; flex-direction: column; overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+        #chat-panel.open { display: flex; }
+        .lm #chat-panel { background: rgba(255,255,255,0.97); border-color: rgba(255,191,0,0.35); }
+        .chat-hdr {
+            padding: 9px 12px; display: flex; align-items: center;
+            justify-content: space-between;
+            background: rgba(255,191,0,0.08); border-bottom: 1px solid rgba(255,191,0,0.14);
+            flex-shrink: 0;
+        }
+        .chat-hdr-title {
+            font-size: 10px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: .09em; color: var(--gold);
+            display: flex; align-items: center; gap: 6px;
+        }
+        #chat-ctx-chip {
+            font-size: 9px; font-weight: 700; color: var(--text-3);
+            padding: 2px 8px; background: var(--bg-elevated);
+            border-radius: 20px; border: 1px solid var(--border-sub);
+        }
+        .chat-close-btn {
+            background: transparent; border: none; color: var(--text-3);
+            font-size: 12px; cursor: pointer; padding: 3px; transition: color .15s;
+        }
+        .chat-close-btn:hover { color: var(--text-1); }
+        .chat-messages {
+            flex: 1; overflow-y: auto; padding: 10px;
+            display: flex; flex-direction: column; gap: 8px; min-height: 0;
+        }
+        .chat-messages::-webkit-scrollbar { width: 3px; }
+        .chat-messages::-webkit-scrollbar-thumb { background: rgba(255,191,0,.3); border-radius: 3px; }
+        .chat-msg {
+            max-width: 92%; line-height: 1.5; font-size: 11.5px; word-break: break-word;
+        }
+        .chat-msg.bot {
+            background: var(--bg-elevated); border: 1px solid var(--border-sub);
+            border-radius: 10px 10px 10px 3px; padding: 8px 11px; color: var(--text-1);
+            align-self: flex-start;
+        }
+        .chat-msg.user {
+            background: rgba(255,191,0,0.11); border: 1px solid rgba(255,191,0,0.22);
+            border-radius: 10px 10px 3px 10px; padding: 8px 11px; color: var(--text-1);
+            align-self: flex-end;
+        }
+        .chat-chips {
+            padding: 0 10px 8px; display: flex; flex-wrap: wrap; gap: 5px; flex-shrink: 0;
+        }
+        .chat-chip {
+            font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 20px;
+            background: var(--bg-elevated); border: 1px solid rgba(255,191,0,0.2);
+            color: var(--gold); cursor: pointer; transition: all .15s;
+            font-family: 'Inter', sans-serif;
+        }
+        .chat-chip:hover:not(:disabled) { background: rgba(255,191,0,0.15); border-color: var(--gold); }
+        .chat-chip:disabled { opacity: .35; cursor: not-allowed; }
+        .chat-input-row {
+            padding: 8px 10px; border-top: 1px solid var(--border-sub);
+            display: flex; gap: 6px; align-items: center; flex-shrink: 0;
+        }
+        #chat-input {
+            flex: 1; background: var(--bg-input); border: 1px solid var(--border-sub);
+            color: var(--text-1); border-radius: 8px; padding: 6px 10px;
+            font-size: 11px; font-family: 'Inter', sans-serif; outline: none;
+            transition: border-color .2s;
+        }
+        #chat-input:focus { border-color: rgba(255,191,0,0.5); }
+        #chat-input::placeholder { color: var(--text-3); }
+        #chat-send {
+            background: var(--gold); border: none; color: #030c1a;
+            border-radius: 8px; width: 30px; height: 30px; flex-shrink: 0;
+            cursor: pointer; font-size: 11px; transition: opacity .15s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        #chat-send:hover { opacity: .85; }
+        #chat-autocomplete {
+            display: none; flex-shrink: 0; overflow-y: auto; max-height: 195px;
+            border-top: 1px solid rgba(255,191,0,0.12);
+            background: var(--bg-card);
+        }
+        .chat-ac-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 7px 12px; cursor: pointer; gap: 8px;
+            border-bottom: 1px solid rgba(148,163,184,0.07);
+            transition: background .1s;
+        }
+        .chat-ac-item:hover, .chat-ac-item.ac-sel {
+            background: rgba(255,191,0,0.09);
+        }
+        .chat-ac-uso { font-size: 11.5px; color: var(--text-1); line-height: 1.3; }
+        .chat-ac-uso strong { color: var(--gold); font-weight: 700; }
+        .chat-ac-dest { font-size: 9px; color: var(--text-3); margin-top: 1px; }
+        .chat-ac-badge {
+            font-size: 9px; font-weight: 800; white-space: nowrap; flex-shrink: 0; padding: 2px 7px;
+            border-radius: 20px; border: 1px solid;
+        }
+        .chat-ac-badge.perm  { color: #34d399; border-color: rgba(52,211,153,.3); background: rgba(52,211,153,.08); }
+        .chat-ac-badge.proh  { color: #f87171; border-color: rgba(248,113,113,.3); background: rgba(248,113,113,.08); }
+        .chat-ac-badge.cond  { color: #fbbf24; border-color: rgba(251,191,36,.3);  background: rgba(251,191,36,.08); }
+        .chat-ac-badge.nd    { color: var(--text-3); border-color: var(--border-sub); background: transparent; }
+        #chat-autocomplete::-webkit-scrollbar { width: 3px; }
+        #chat-autocomplete::-webkit-scrollbar-thumb { background: rgba(255,191,0,.25); border-radius: 3px; }
+        .chat-map-btn {
+            display: inline-flex; align-items: center; gap: 5px; margin-top: 8px;
+            font-size: 10px; font-weight: 700; padding: 5px 12px; border-radius: 7px;
+            background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3);
+            color: #34d399; cursor: pointer; font-family: 'Inter', sans-serif;
+            transition: background .15s;
+        }
+        .chat-map-btn:hover { background: rgba(52,211,153,0.2); }
+        .chat-map-btn-sm {
+            font-size: 9px; padding: 2px 7px; border-radius: 5px; flex-shrink: 0;
+            background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.25);
+            color: #34d399; cursor: pointer; font-family: 'Inter', sans-serif;
+            transition: background .15s;
+        }
+        .chat-map-btn-sm:hover { background: rgba(52,211,153,0.18); }
+        .chat-clear-btn {
+            display: inline-flex; align-items: center; gap: 5px; margin-top: 6px;
+            font-size: 10px; padding: 4px 10px; border-radius: 6px;
+            background: rgba(148,163,184,0.08); border: 1px solid rgba(148,163,184,0.2);
+            color: var(--text-3); cursor: pointer; font-family: 'Inter', sans-serif;
+        }
+        .chat-clear-btn:hover { color: var(--text-2); background: rgba(148,163,184,0.15); }
+
+        /* ── LINK-STYLE BUTTON ── */
+        .link-btn {
+            background: rgba(255,191,0,.07); border: 1px solid rgba(255,191,0,.2);
+            border-radius: 7px; padding: 7px; color: var(--gold); font-size: 10px;
+            font-weight: 700; cursor: pointer; width: 100%;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            transition: background .2s; font-family: 'Inter', sans-serif;
+        }
+        .link-btn:hover { background: rgba(255,191,0,.14); }
     </style>
 </head>
-<body class="font-sans antialiased overflow-hidden">
+<body>
 
-    <header class="bg-[#ffbf00] h-20 flex items-center justify-between px-6 z-10 relative shadow-xl border-b-4 border-slate-900">
-        <div class="flex items-center space-x-5">
-            <div class="bg-slate-950 p-1.5 rounded-xl shadow-inner border border-slate-800 flex items-center justify-center h-16 w-32">
-                <img src="logo_lujan.png" alt="Municipio Luján de Cuyo" class="h-14 w-auto object-contain">
-            </div>
-            <div>
-                <h1 class="text-xl font-black tracking-tight text-slate-950 uppercase leading-none">Luján de Cuyo</h1>
-                <p class="text-xs text-slate-900 font-bold tracking-wide mt-1">S.I.O.T. — Visor Catastral y Ordenamiento Territorial</p>
-            </div>
+<!-- HEADER -->
+<header id="header">
+    <div style="display:flex;align-items:center;gap:12px;">
+        <div class="hdr-logo">
+            <img src="logo_lujan.png" alt="Luján de Cuyo">
         </div>
-        
-        <div class="flex items-center space-x-3">
-            <button id="theme-toggle" class="bg-slate-950 text-[#ffbf00] hover:bg-slate-900 hover:text-white px-3 py-2 rounded-lg text-xs font-black tracking-wider uppercase border border-slate-800 shadow-sm cursor-pointer transition flex items-center space-x-1.5">
-                <i id="theme-icon" class="fa-solid fa-sun text-amber-400"></i>
-                <span id="theme-text">Modo Claro</span>
+        <div>
+            <div class="hdr-title">Luján de Cuyo</div>
+            <div class="hdr-sub">S.I.O.T. — Visor Catastral &amp; Ord. Territorial</div>
+        </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+        <div id="kpi-chips" style="display:none;align-items:center;gap:6px;">
+            <div class="hdr-chip"><i class="fa-solid fa-layer-group" style="font-size:9px;opacity:.7;"></i> <span id="kpi-count">-</span> zonas</div>
+            <div class="hdr-chip"><i class="fa-solid fa-chart-area" style="font-size:9px;opacity:.7;"></i> <span id="kpi-area">-</span> ha</div>
+        </div>
+        <div class="hdr-sep"></div>
+        <button id="btn-sidebar" title="Mostrar/ocultar panel">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <button id="btn-theme" class="hdr-btn">
+            <i id="theme-icon" class="fa-solid fa-sun" style="color:var(--gold);font-size:11px;"></i>
+            <span id="theme-text">Claro</span>
+        </button>
+        <a href="ordenanza_14517.pdf" download class="hdr-btn hdr-btn-red">
+            <i class="fa-solid fa-file-pdf" style="font-size:11px;"></i> Ord. 14517/2023
+        </a>
+    </div>
+</header>
+
+<div id="layout">
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar">
+
+        <!-- BÚSQUEDA -->
+        <div id="search-wrap">
+            <div class="search-rel">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input id="search-global" type="text" class="sbar" placeholder="Padrón N° o código de zona (ej: ZCM1)…" disabled>
+            </div>
+            <button id="btn-loading"><span class="spinner"></span></button>
+            <button id="btn-clear" class="icon-btn" title="Restablecer"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- TABS -->
+        <div id="tab-bar">
+            <button class="tab active" data-tab="parcela">
+                <i class="fa-solid fa-map-pin" style="font-size:10px;"></i> Parcela
             </button>
-
-            <a href="ordenanza_14517.pdf" download="ORDENANZA_N_14517-2023_Lujan_de_Cuyo.pdf" 
-               class="bg-slate-950 text-[#ffbf00] hover:text-white hover:bg-slate-900 transition px-4 py-2 rounded-lg text-xs font-black tracking-wider uppercase border border-slate-800 shadow-sm flex items-center space-x-2">
-                <i class="fa-solid fa-file-pdf text-rose-500 text-sm"></i>
-                <span>Descargar Ordenanza 14517/2023</span>
-            </a>
+            <button class="tab" data-tab="zona">
+                <i class="fa-solid fa-compass-drafting" style="font-size:10px;"></i> Zona
+            </button>
+            <button class="tab" data-tab="usos">
+                <i class="fa-solid fa-list-check" style="font-size:10px;"></i> Usos
+                <span class="tab-badge" id="badge-usos"></span>
+            </button>
         </div>
-    </header>
 
-    <div class="flex h-[calc(100vh-80px)] w-full">
-        <aside class="w-96 border-r flex flex-col z-10 shadow-2xl overflow-hidden transition-colors duration-300">
-            
-            <div id="kpi-panel" class="px-4 py-4 grid grid-cols-2 gap-3 border-b border-slate-700/30 bg-black/5 hidden">
-                <div class="theme-card p-2.5 rounded-xl border shadow-md">
-                    <span class="text-[10px] text-[#ffbf00] block font-black uppercase tracking-wider">Polígonos Regulados</span>
-                    <span id="kpi-count" class="text-xl font-black">-</span>
-                </div>
-                <div class="theme-card p-2.5 rounded-xl border shadow-md">
-                    <span class="text-[10px] text-[#ffbf00] block font-black uppercase tracking-wider">Superficie Total</span>
-                    <span id="kpi-area" class="text-sm font-black mt-1 block">- ha</span>
+        <!-- PANEL PARCELA -->
+        <div class="panel active" id="panel-parcela">
+            <div class="ph" id="ph-parcela">
+                <div class="ph-icon"><i class="fa-solid fa-hand-pointer"></i></div>
+                <div class="ph-title">Seleccioná una parcela</div>
+                <div class="ph-body">Hacé clic sobre el mapa para consultar los datos catastrales y normativos de la parcela.</div>
+            </div>
+            <div id="parcela-data" style="display:none;"></div>
+        </div>
+
+        <!-- PANEL ZONA -->
+        <div class="panel" id="panel-zona">
+            <div class="ph" id="ph-zona">
+                <div class="ph-icon"><i class="fa-solid fa-draw-polygon"></i></div>
+                <div class="ph-title">Sin zona seleccionada</div>
+                <div class="ph-body">Hacé clic en el mapa o buscá un código de zona para ver sus indicadores morfológicos.</div>
+            </div>
+            <div id="zona-data" style="display:none;"></div>
+        </div>
+
+        <!-- PANEL USOS -->
+        <div class="panel" id="panel-usos">
+            <div class="ph" id="ph-usos">
+                <div class="ph-icon"><i class="fa-solid fa-layer-group"></i></div>
+                <div class="ph-title">Sin zona activa</div>
+                <div class="ph-body">Seleccioná una zona para consultar la matriz de usos del suelo permitidos.</div>
+            </div>
+            <div id="usos-data" style="display:none;"></div>
+        </div>
+
+    </aside>
+
+    <!-- MAPA -->
+    <main id="main">
+        <div id="map"></div>
+
+        <!-- ASISTENTE FLOTANTE -->
+        <button id="chat-fab" title="Asistente S.I.O.T.">
+            <i class="fa-solid fa-robot"></i>
+        </button>
+        <div id="chat-panel">
+            <div class="chat-hdr">
+                <span class="chat-hdr-title">
+                    <i class="fa-solid fa-robot" style="font-size:11px;"></i> Asistente S.I.O.T.
+                </span>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <span id="chat-ctx-chip">Sin zona</span>
+                    <button class="chat-close-btn" id="chat-reset" title="Nueva conversación"><i class="fa-solid fa-rotate-right"></i></button>
+                    <button class="chat-close-btn" id="chat-close" title="Cerrar"><i class="fa-solid fa-xmark"></i></button>
                 </div>
             </div>
-
-            <div id="map-legend" class="px-4 py-3.5 border-b border-slate-700/30 bg-black/5 space-y-2.5">
-                <label class="block text-[10px] font-black uppercase tracking-widest text-[#ffbf00]"><i class="fa-solid fa-palette mr-1"></i> Referencias de Zonificación</label>
-                <div id="map-legend-items" class="grid grid-cols-2 gap-x-3 gap-y-2.5"></div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div id="chat-autocomplete"></div>
+            <div class="chat-chips" id="chat-chips"></div>
+            <div class="chat-input-row">
+                <input id="chat-input" type="text" placeholder="Ej: vivienda, taller, hotel…" maxlength="200" autocomplete="off">
+                <button id="chat-send"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
+        </div>
 
-            <div class="p-3 border-b border-slate-700/30 flex items-center gap-2">
-                <div class="relative flex-1">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-[#ffbf00]">
-                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
-                    </span>
-                    <input id="search-global" type="text" placeholder="Buscar por Padrón (N°) o Zona (ej: ZCM1)..." 
-                           class="theme-input w-full border rounded-lg pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-[#ffbf00]" disabled/>
-                </div>
-                <button id="btn-clear-filters" title="Restablecer vista completa" 
-                        class="bg-slate-950 text-[#ffbf00] hover:bg-slate-900 hover:text-white border border-slate-800 p-2 rounded-lg text-xs transition cursor-pointer flex items-center justify-center h-[34px] w-[38px]">
-                    <i class="fa-solid fa-arrow-rotate-left"></i>
-                </button>
+        <div id="status-bar">
+            <span id="sb-coords" style="font-variant-numeric:tabular-nums;">— , —</span>
+            <span class="hdr-sep">|</span>
+            <span id="sb-zoom">Z: —</span>
+            <span class="hdr-sep">|</span>
+            <span id="sb-status">Inicializando…</span>
+            <span style="margin-left:auto;display:flex;align-items:center;gap:4px;">
+                <i class="fa-solid fa-database" style="font-size:9px;color:var(--gold);"></i>
+                sc_catastro.parcelario_catastral_new
+            </span>
+        </div>
+    </main>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+const GEOJSON_FILE  = 'zonificacion_14517.geojson';
+const CSV_FILE      = 'matriz_usos.csv';
+const WMS_URL       = 'https://visorgis.lujandecuyo.gob.ar/geoserver/geonode/wms';
+const WFS_URL       = 'https://visorgis.lujandecuyo.gob.ar/geoserver/geonode/ows';
+const PARCEL_LAYER  = 'geonode:parcelario_catastral_new';
+
+const ZONE_COLORS = [
+    { label: 'Centralidad / Mixto',      prefixes: ['ZCM','ZC'],                  color: '#ef4444' },
+    { label: 'Residencial (ZR)',          prefixes: ['ZR1','ZR2','ZR3','ZR4','ZR5'], color: '#f59e0b' },
+    { label: 'Residencial Mixto (ZRM)',   prefixes: ['ZRM'],                        color: '#ec4899' },
+    { label: 'Industrial',               prefixes: ['ZIP','ZIA','ZIN','ZI'],        color: '#8b5cf6' },
+    { label: 'Rural / Agrícola / Vit.',  prefixes: ['ZRUR','ZAGT','ZVIT'],         color: '#10b981' },
+    { label: 'Amortiguación / Esp.',     prefixes: ['ZAE','ZRA','ZCON','ZAI','ZCA'], color: '#059669' },
+    { label: 'Recreativo / Verde',       prefixes: ['ZREC'],                        color: '#06b6d4' },
+    { label: 'Servicios / Equipam.',     prefixes: ['ZSER','ZED','ZEPM','ZPET','ZPRIL'], color: '#64748b' },
+];
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let geojsonLayer = null, originalGeoData = null, csvData = null;
+let selectedZoneCode = null, highlightedParcelLayer = null;
+let isDark    = true;   // tema de la interfaz (UI)
+let isMapDark = true;   // mapa base (tile layer)
+
+// ── MAP ──────────────────────────────────────────────────────────────────────
+const map = L.map('map', { zoomControl: false, minZoom: 10 }).setView([-33.05, -68.90], 11);
+L.control.zoom({ position: 'topright' }).addTo(map);
+
+const tiles = {
+    dark:      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',            { attribution: '&copy; CARTO', maxZoom: 19 }),
+    light:     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO', maxZoom: 19 }),
+    satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri &mdash; Esri, USGS, NOAA', maxZoom: 19 }),
+};
+tiles.dark.addTo(map);
+
+const parcelWMS = L.tileLayer.wms(WMS_URL, {
+    layers: PARCEL_LAYER, format: 'image/png', transparent: true,
+    version: '1.1.1', attribution: 'Catastro Municipal', opacity: 0.85,
+}).addTo(map);
+
+// Placeholder group para zonas — siempre visible en el control de capas
+const zoneGroup = L.layerGroup().addTo(map);
+
+const MapCtrl = L.Control.extend({
+    options: { position: 'bottomright' },
+    onAdd() {
+        const wrap = L.DomUtil.create('div', 'map-ctrl-wrap');
+        L.DomEvent.disableClickPropagation(wrap);
+        L.DomEvent.disableScrollPropagation(wrap);
+        const legendRows = ZONE_COLORS.map(z =>
+            `<div class="ctrl-leg-item"><span class="ctrl-leg-dot" style="background:${z.color};"></span><span class="ctrl-leg-lbl">${z.label}</span></div>`
+        ).join('');
+        wrap.innerHTML = `
+            <div class="ctrl-hdr" id="ctrl-hdr">
+                <span class="ctrl-hdr-title"><i class="fa-solid fa-layer-group"></i>&nbsp; Capas &amp; Referencias</span>
+                <i class="fa-solid fa-chevron-down ctrl-chev" id="ctrl-chev"></i>
             </div>
-
-            <div class="flex border-b border-slate-700/30 text-xs bg-black/10">
-                <button id="btn-tab-morfologia" class="flex-1 py-3 text-center font-black border-b-2 border-[#ffbf00] text-[#ffbf00] focus:outline-none transition uppercase tracking-wider cursor-pointer">
-                    <i class="fa-solid fa-compass-drafting mr-1"></i> Morfología / Catastro
-                </button>
-                <button id="btn-tab-usos" class="flex-1 py-3 text-center font-black border-b-2 border-transparent theme-text-muted hover:text-[#ffbf00] focus:outline-none transition uppercase tracking-wider cursor-pointer">
-                    <i class="fa-solid fa-sheet-plastic mr-1"></i> Usos del Suelo
-                </button>
-            </div>
-
-            <div class="flex-1 overflow-y-auto custom-scrollbar p-4 relative bg-black/5">
-                <div id="inspector-placeholder" class="theme-text-muted text-xs italic text-center py-16 px-4">
-                    <i class="fa-solid fa-hand-pointer block text-3xl text-slate-400 opacity-40 mb-3 animate-pulse"></i>
-                    Seleccioná una parcela o zona del mapa para cruzar indicadores morfológicos y usos permitidos.
-                </div>
-                
-                <div id="panel-morfologia" class="hidden space-y-4">
-                    
-                    <div id="ficha-catastral" class="theme-card rounded-xl border-t-4 border-t-sky-500 border-x border-b p-3 shadow-md hidden bg-sky-500/5">
-                        <h5 class="text-[10px] uppercase font-black text-sky-500 tracking-widest mb-1.5"><i class="fa-solid fa-map-location-dot mr-1"></i> Datos Catastrales Cruzados</h5>
-                        <div class="grid grid-cols-2 gap-2 text-[11px]">
-                            <div><span class="theme-text-muted block text-[9px] uppercase">Padrón Municipal:</span> <strong id="cat-padron" class="text-sky-400 font-mono">-</strong></div>
-                            <div><span class="theme-text-muted block text-[9px] uppercase">Nomenclatura:</span> <strong id="cat-nomen" class="text-sky-400 font-mono text-[10px]">-</strong></div>
-                        </div>
-                    </div>
-
-                    <div class="theme-card rounded-xl border-t-4 border-t-[#ffbf00] border-x border-b p-4 shadow-xl">
-                        <div class="flex justify-between items-start mb-3 border-b border-slate-700/30 pb-2.5">
-                            <div>
-                                <h4 id="insp-codigo" class="text-2xl font-black text-[#ffbf00] tracking-wide">-</h4>
-                                <p id="insp-nombre" class="text-[10px] font-bold uppercase mt-0.5 tracking-wide leading-tight">-</p>
-                            </div>
-                            <span class="text-[9px] theme-input border px-2 py-0.5 rounded-md font-mono uppercase font-bold">Normativa</span>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-2.5 mb-4">
-                            <div class="p-2.5 theme-input border rounded-xl flex flex-col justify-between shadow-sm bg-black/5">
-                                <span class="theme-text-muted block text-[9px] uppercase font-bold tracking-wider"><i class="fa-solid fa-chart-pie text-[#ffbf00] mr-1"></i> F.O.S Máximo</span>
-                                <span id="insp-fos" class="text-lg font-black mt-1 text-slate-900 dark:text-white">-</span>
-                            </div>
-                            <div class="p-2.5 theme-input border rounded-xl flex flex-col justify-between shadow-sm bg-black/5">
-                                <span class="theme-text-muted block text-[9px] uppercase font-bold tracking-wider"><i class="fa-solid fa-arrows-up-down text-[#ffbf00] mr-1"></i> Altura Máx.</span>
-                                <span id="insp-altura" class="text-lg font-black mt-1 text-slate-900 dark:text-white">-</span>
-                            </div>
-                            <div class="p-2.5 theme-input border rounded-xl flex flex-col justify-between shadow-sm bg-black/5">
-                                <span class="theme-text-muted block text-[9px] uppercase font-bold tracking-wider"><i class="fa-solid fa-vector-square text-[#ffbf00] mr-1"></i> Lote Mínimo</span>
-                                <span id="insp-lote" class="text-lg font-black mt-1 text-slate-900 dark:text-white">-</span>
-                            </div>
-                            <div class="p-2.5 theme-input border rounded-xl flex flex-col justify-between shadow-sm bg-black/5">
-                                <span class="theme-text-muted block text-[9px] uppercase font-bold tracking-wider"><i class="fa-solid fa-ruler-horizontal text-[#ffbf00] mr-1"></i> Frente Mín.</span>
-                                <span id="insp-lado" class="text-lg font-black mt-1 text-slate-900 dark:text-white">-</span>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-2 mb-4">
-                            <div class="p-2 theme-card rounded border border-emerald-500/30 bg-emerald-500/5">
-                                <div class="flex justify-between items-center mb-1">
-                                    <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Permitidos</span>
-                                    <span id="pct-permitidos" class="text-xs font-black text-emerald-600 dark:text-emerald-400">0%</span>
-                                </div>
-                                <div class="w-full bg-slate-200 dark:bg-slate-700 h-1 rounded-full overflow-hidden mb-2">
-                                    <div id="bar-permitidos" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
-                                </div>
-                                <div class="text-[10px] theme-text-muted"><span id="morf-count-permitidos" class="font-bold">0</span> rubros</div>
-                            </div>
-
-                            <div class="p-2 theme-card rounded border border-amber-500/30 bg-amber-500/5">
-                                <div class="flex justify-between items-center mb-1">
-                                    <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Condic.</span>
-                                    <span id="pct-condicionados" class="text-xs font-black text-amber-600 dark:text-amber-400">0%</span>
-                                </div>
-                                <div class="w-full bg-slate-200 dark:bg-slate-700 h-1 rounded-full overflow-hidden mb-2">
-                                    <div id="bar-condicionados" class="bg-amber-500 h-full transition-all duration-500" style="width: 0%"></div>
-                                </div>
-                                <div class="text-[10px] theme-text-muted"><span id="morf-count-condicionados" class="font-bold">0</span> rubros</div>
-                            </div>
-
-                            <div class="p-2 theme-card rounded border border-rose-500/30 bg-rose-500/5">
-                                <div class="flex justify-between items-center mb-1">
-                                    <span class="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Prohibidos</span>
-                                    <span id="pct-prohibidos" class="text-xs font-black text-rose-600 dark:text-rose-400">0%</span>
-                                </div>
-                                <div class="w-full bg-slate-200 dark:bg-slate-700 h-1 rounded-full overflow-hidden mb-2">
-                                    <div id="bar-prohibidos" class="bg-rose-500 h-full transition-all duration-500" style="width: 0%"></div>
-                                </div>
-                                <div class="text-[10px] theme-text-muted"><span id="morf-count-prohibidos" class="font-bold">0</span> rubros</div>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 pt-3 border-t border-slate-700/30">
-                            <h5 class="text-[9px] uppercase font-black text-[#ffbf00] tracking-widest mb-2"><i class="fa-solid fa-compress mr-1.5"></i>Retiros Obligatorios</h5>
-                            <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
-                                <div class="theme-input border p-2 rounded-lg">
-                                    <span class="theme-text-muted block text-[9px] uppercase font-medium">Frontal</span>
-                                    <span id="insp-rf" class="font-black text-slate-900 dark:text-white">-</span>
-                                </div>
-                                <div class="theme-input border p-2 rounded-lg">
-                                    <span class="theme-text-muted block text-[9px] uppercase font-medium">Lateral</span>
-                                    <span id="insp-rl" class="font-black text-slate-900 dark:text-white">-</span>
-                                </div>
-                                <div class="theme-input border p-2 rounded-lg">
-                                    <span class="theme-text-muted block text-[9px] uppercase font-medium">Posterior</span>
-                                    <span id="insp-rp" class="font-black text-slate-900 dark:text-white">-</span>
-                                </div>
-                            </div>
-                        </div>
+            <div class="ctrl-body" id="ctrl-body">
+                <div>
+                    <div class="ctrl-sec-title">Mapa Base</div>
+                    <div class="ctrl-radios">
+                        <label class="ctrl-opt"><input type="radio" name="basemap" value="dark" checked> Oscuro</label>
+                        <label class="ctrl-opt"><input type="radio" name="basemap" value="light"> Claro</label>
+                        <label class="ctrl-opt"><input type="radio" name="basemap" value="satellite"> <i class="fa-solid fa-satellite" style="font-size:9px;opacity:.8;"></i> Satélite</label>
                     </div>
                 </div>
-
-                <div id="panel-usos" class="hidden space-y-3">
-                    <div class="relative mb-2 shadow-sm">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-[#ffbf00]">
-                            <i class="fa-solid fa-filter text-xs"></i>
-                        </span>
-                        <input id="search-activity" type="text" placeholder="Filtrar actividades (ej: vivienda)..." 
-                               class="theme-input w-full border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[#ffbf00]" />
-                    </div>
-
-                    <div class="text-[10px] theme-input border p-2.5 rounded-lg mb-2 flex items-center justify-between">
-                        <span>Zona Reguladora Activa: <strong id="usos-zona-titulo" class="text-[#ffbf00] font-mono font-bold">-</strong></span>
-                    </div>
-
-                    <div class="border border-emerald-600/30 rounded-lg overflow-hidden">
-                        <button onclick="toggleAccordion('list-permitidos')" class="w-full bg-emerald-500/10 hover:bg-emerald-500/20 px-3 py-2.5 flex justify-between items-center border-b border-emerald-600/20 text-emerald-600 font-black text-xs transition cursor-pointer">
-                            <span><i class="fa-solid fa-square-check mr-1.5 text-emerald-500"></i> PERMITIDOS / DOMINANTES</span>
-                            <span id="btn-count-permitidos" class="bg-emerald-500/20 text-emerald-600 border border-emerald-500/40 text-[10px] px-2 py-0.5 font-bold rounded-full">0</span>
-                        </button>
-                        <div id="list-permitidos" class="max-h-96 overflow-y-auto p-2 space-y-1.5 text-[11px] custom-scrollbar hidden bg-black/5"></div>
-                    </div>
-
-                    <div class="border border-amber-600/30 rounded-lg overflow-hidden">
-                        <button onclick="toggleAccordion('list-condicionados')" class="w-full bg-amber-500/10 hover:bg-amber-500/20 px-3 py-2.5 flex justify-between items-center border-b border-amber-600/20 text-amber-600 font-black text-xs transition cursor-pointer">
-                            <span><i class="fa-solid fa-triangle-exclamation mr-1.5 text-amber-500"></i> SUJETOS A CONDICIÓN</span>
-                            <span id="btn-count-condicionados" class="bg-amber-500/20 text-amber-600 border border-amber-500/40 text-[10px] px-2 py-0.5 font-bold rounded-full">0</span>
-                        </button>
-                        <div id="list-condicionados" class="max-h-96 overflow-y-auto p-2 space-y-1.5 text-[11px] custom-scrollbar hidden bg-black/5"></div>
-                    </div>
-
-                    <div class="border border-rose-600/30 rounded-lg overflow-hidden">
-                        <button onclick="toggleAccordion('list-prohibidos')" class="w-full bg-rose-500/10 hover:bg-rose-500/20 px-3 py-2.5 flex justify-between items-center border-b border-rose-600/20 text-rose-600 font-black text-xs transition cursor-pointer">
-                            <span><i class="fa-solid fa-square-xmark mr-1.5 text-rose-500"></i> PROHIBIDOS EXPLÍCITOS</span>
-                            <span id="btn-count-prohibidos" class="bg-rose-500/20 text-rose-600 border border-rose-500/40 text-[10px] px-2 py-0.5 font-bold rounded-full">0</span>
-                        </button>
-                        <div id="list-prohibidos" class="max-h-96 overflow-y-auto p-2 space-y-1.5 text-[11px] custom-scrollbar hidden bg-black/5"></div>
+                <div class="ctrl-div"></div>
+                <div>
+                    <div class="ctrl-sec-title">Capas</div>
+                    <div class="ctrl-checks">
+                        <label class="ctrl-opt"><input type="checkbox" id="chk-parcel" checked> 📐 Parcelario Catastral</label>
+                        <label class="ctrl-opt"><input type="checkbox" id="chk-zones" checked> 🗺️ Zonificación (Ord. 14517)</label>
                     </div>
                 </div>
-            </div>
-        </aside>
+                <div class="ctrl-div"></div>
+                <div>
+                    <div class="ctrl-sec-title">Referencias de Zonificación</div>
+                    <div class="ctrl-legend">${legendRows}</div>
+                </div>
+            </div>`;
+        wrap.querySelector('#ctrl-hdr').addEventListener('click', () => {
+            const body = wrap.querySelector('#ctrl-body');
+            const chev = wrap.querySelector('#ctrl-chev');
+            const isCollapsed = body.style.display === 'none';
+            body.style.display = isCollapsed ? '' : 'none';
+            chev.style.transform = isCollapsed ? '' : 'rotate(-90deg)';
+        });
+        wrap.querySelector('[value="dark"]').addEventListener('change',      () => setBasemap('dark'));
+        wrap.querySelector('[value="light"]').addEventListener('change',     () => setBasemap('light'));
+        wrap.querySelector('[value="satellite"]').addEventListener('change', () => setBasemap('satellite'));
+        wrap.querySelector('#chk-parcel').addEventListener('change', e => {
+            e.target.checked ? map.addLayer(parcelWMS) : map.removeLayer(parcelWMS);
+        });
+        wrap.querySelector('#chk-zones').addEventListener('change', e => {
+            e.target.checked ? map.addLayer(zoneGroup) : map.removeLayer(zoneGroup);
+        });
+        return wrap;
+    }
+});
+new MapCtrl().addTo(map);
 
-        <main class="flex-1 relative">
-            <div id="map"></div>
-        </main>
+// Coords + zoom en status bar
+map.on('mousemove', e => {
+    document.getElementById('sb-coords').textContent =
+        `${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`;
+});
+map.on('zoom', () => document.getElementById('sb-zoom').textContent = `Z: ${map.getZoom()}`);
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function getZoneColor(code) {
+    if (!code) return '#64748b';
+    const c = code.toUpperCase().trim();
+    for (const z of ZONE_COLORS)
+        for (const p of z.prefixes)
+            if (c.startsWith(p)) return z.color;
+    return '#64748b';
+}
+
+let _toastTimer = null;
+function showToast(msg, ms = 3000) {
+    const el = document.getElementById('toast');
+    if (_toastTimer) clearTimeout(_toastTimer);
+    el.textContent = msg; el.classList.add('show');
+    _toastTimer = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+function setStatus(msg) { document.getElementById('sb-status').textContent = msg; }
+
+function showLoading(on) { document.getElementById('btn-loading').style.display = on ? 'block' : 'none'; }
+
+function ph(id, show) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = show ? '' : 'none';
+}
+
+function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.panel').forEach(p => {
+        p.classList.toggle('active', p.id === 'panel-' + tab);
+    });
+}
+
+// ── BASEMAP (independiente del tema UI) ───────────────────────────────────────
+function setBasemap(mode) {
+    isMapDark = mode;
+    Object.values(tiles).forEach(t => map.removeLayer(t));
+    tiles[mode].addTo(map);
+    // Opacidad de zonas: más visible sobre oscuro/satélite, más suave sobre claro
+    if (mode === 'light') {
+        if (geojsonLayer) geojsonLayer.setStyle({ fillOpacity: 0.22, weight: 0.8 });
+    } else if (mode === 'satellite') {
+        if (geojsonLayer) geojsonLayer.setStyle({ fillOpacity: 0.45, weight: 2, color: '#ffffff', opacity: 0.6 });
+    } else {
+        if (geojsonLayer) geojsonLayer.setStyle({ fillOpacity: 0.50, weight: 1.5, color: '#000000', opacity: 0.5 });
+    }
+    parcelWMS.bringToFront();
+}
+
+// ── THEME UI (solo interfaz, no afecta el mapa base) ─────────────────────────
+document.getElementById('btn-theme').addEventListener('click', () => {
+    isDark = !isDark;
+    document.body.classList.toggle('lm', !isDark);
+    const icon = document.getElementById('theme-icon');
+    const txt  = document.getElementById('theme-text');
+    if (isDark) {
+        icon.className = 'fa-solid fa-sun'; icon.style.color = 'var(--gold)'; txt.textContent = 'Claro';
+    } else {
+        icon.className = 'fa-solid fa-moon'; icon.style.color = '#818cf8'; txt.textContent = 'Oscuro';
+    }
+});
+
+// ── TABS ─────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
+
+// ── INIT (script está al final de body — DOM ya listo) ───────────────────────
+function initApp() {
+    map.invalidateSize();
+
+    // Detectar apertura directa desde sistema de archivos (file://)
+    if (location.protocol === 'file:') {
+        setStatus('⚠ Abrí este archivo mediante un servidor local');
+        document.getElementById('panel-parcela').innerHTML = `
+            <div style="padding:20px;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center;">
+                <div style="width:52px;height:52px;border-radius:50%;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);display:flex;align-items:center;justify-content:center;font-size:22px;">⚠️</div>
+                <div style="font-size:13px;font-weight:700;color:#fbbf24;">Servidor local requerido</div>
+                <div style="font-size:11px;color:var(--text-2);line-height:1.6;">El archivo está abierto como <code style="background:var(--bg-elevated);padding:1px 5px;border-radius:4px;font-size:10px;">file://</code> y el navegador bloquea la carga de datos locales.<br><br>
+                <strong>Solución:</strong> En VS Code, hacé clic derecho sobre el archivo y elegí <strong>"Open with Live Server"</strong>.<br><br>
+                O ejecutá en la terminal del proyecto:<br>
+                <code style="background:var(--bg-elevated);padding:4px 8px;border-radius:5px;font-size:10px;display:block;margin-top:6px;">python -m http.server 8080</code><br>
+                Luego abrí <code style="background:var(--bg-elevated);padding:1px 5px;border-radius:4px;font-size:10px;">http://localhost:8080</code>
+                </div>
+            </div>`;
+        return;
+    }
+
+    setStatus('Cargando zonificación…');
+    fetch(GEOJSON_FILE)
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+        })
+        .then(data => {
+            originalGeoData = data;
+            renderGeoJSON(data);
+            buildKpis(data);
+            document.getElementById('search-global').disabled = false;
+            document.getElementById('kpi-chips').style.display = 'flex';
+            setStatus(`${data.features.length} zonas cargadas`);
+            const b = geojsonLayer && geojsonLayer.getBounds();
+            if (b && b.isValid()) map.fitBounds(b, { padding: [40, 40] });
+        })
+        .catch(err => {
+            console.error('GeoJSON error:', err);
+            setStatus(`⚠ Error cargando zonificación: ${err.message}`);
+            showToast(`No se pudo cargar ${GEOJSON_FILE}. Verificá que el archivo existe.`, 5000);
+        });
+
+    fetch(CSV_FILE)
+        .then(r => r.text())
+        .then(txt => {
+            const result = Papa.parse(txt, { header: true, skipEmptyLines: true });
+            csvData = result.data;
+            console.log(`CSV: ${csvData.length} filas cargadas`);
+        })
+        .catch(err => {
+            console.error('CSV error:', err);
+            showToast('No se pudo cargar la matriz de usos del suelo.', 4000);
+        });
+}
+
+initApp();
+
+function buildKpis(data) {
+    document.getElementById('kpi-count').textContent = data.features.length;
+    let area = 0;
+    data.features.forEach(f => { if (f.properties.sup_m2) area += Number(f.properties.sup_m2); });
+    document.getElementById('kpi-area').textContent = Number((area / 10000).toFixed(0)).toLocaleString('es-AR');
+}
+
+function renderGeoJSON(geojson) {
+    // Limpiar capa anterior del grupo
+    zoneGroup.clearLayers();
+
+    const fillOp = isMapDark === 'light' ? 0.22 : isMapDark === 'satellite' ? 0.45 : 0.50;
+    const wt     = isMapDark === 'light' ? 0.8  : isMapDark === 'satellite' ? 2.0  : 1.5;
+
+    geojsonLayer = L.geoJSON(geojson, {
+        style: f => ({
+            fillColor:   getZoneColor(f.properties.codigo),
+            fillOpacity: fillOp,
+            color:       '#000000',
+            weight:      wt,
+            opacity:     0.5,
+        }),
+        onEachFeature(feat, layer) {
+            if (feat.properties?.codigo) {
+                layer.bindTooltip(
+                    `<strong style="font-size:13px;color:#ffbf00;">${feat.properties.codigo}</strong><br>` +
+                    `<span style="color:#94a3b8;font-size:10px;">${feat.properties.zona_ || ''}</span>`,
+                    { sticky: true }
+                );
+            }
+            layer.on('click', e => {
+                L.DomEvent.stopPropagation(e);
+                if (e.originalEvent) e.originalEvent.stopPropagation();
+                selectedZoneCode = feat.properties.codigo;
+                highlightZone(layer);
+                renderZonePanel(feat.properties);
+                renderUsesPanel(feat.properties.codigo);
+                setChatContext(feat.properties);
+                ph('ph-parcela', true);
+                document.getElementById('parcela-data').style.display = 'none';
+                switchTab('zona');
+                setStatus(`Zona: ${feat.properties.codigo} — ${feat.properties.zona_ || ''}`);
+            });
+        }
+    });
+
+    // Agregar el GeoJSON al grupo (que ya está en el mapa y en el control)
+    zoneGroup.addLayer(geojsonLayer);
+    // Parcelario WMS encima para ver números/límites de parcelas
+    parcelWMS.bringToFront();
+}
+
+function highlightZone(layer) {
+    if (geojsonLayer) geojsonLayer.eachLayer(l => geojsonLayer.resetStyle(l));
+    layer.setStyle({ weight: 3.5, color: '#ffbf00', fillOpacity: isMapDark === 'light' ? 0.35 : 0.65 });
+    parcelWMS.bringToFront();
+}
+
+// ── MAP CLICK → PARCEL ───────────────────────────────────────────────────────
+map.on('click', async e => {
+    const size  = map.getSize();
+    const bbox  = map.getBounds().toBBoxString();
+    const point = map.latLngToContainerPoint(e.latlng, map.getZoom());
+
+    showLoading(true);
+    setStatus('Consultando parcelario catastral…');
+
+    const url = `${WMS_URL}?REQUEST=GetFeatureInfo&SERVICE=WMS&VERSION=1.1.1` +
+                `&LAYERS=${PARCEL_LAYER}&QUERY_LAYERS=${PARCEL_LAYER}` +
+                `&INFO_FORMAT=application/json&BBOX=${bbox}&FEATURE_COUNT=1` +
+                `&HEIGHT=${size.y}&WIDTH=${size.x}` +
+                `&X=${Math.round(point.x)}&Y=${Math.round(point.y)}&SRS=EPSG:4326`;
+    try {
+        const res = await fetch(url);
+        const gj  = await res.json();
+        showLoading(false);
+        if (gj.features?.length > 0) {
+            const parcel = gj.features[0];
+            e.originalEvent._parcelClicked = true;
+            highlightParcel(parcel);
+            const zp = findZoneForParcel(parcel);
+            renderParcelPanel(parcel.properties, zp);
+            if (zp) {
+                selectedZoneCode = zp.codigo;
+                renderZonePanel(zp);
+                renderUsesPanel(zp.codigo);
+                setChatContext(zp);
+            }
+            switchTab('parcela');
+            setStatus(`Padrón: ${parcel.properties.padronmuni || 'S/D'} — ${parcel.properties.nomen_20 || ''}`);
+        } else {
+            setStatus('Sin parcela en el punto seleccionado');
+        }
+    } catch {
+        showLoading(false);
+        setStatus('Error de conexión con el servidor catastral');
+        showToast('No se pudo conectar con el servidor catastral. Verificá la conexión.');
+    }
+});
+
+function highlightParcel(f) {
+    if (highlightedParcelLayer) map.removeLayer(highlightedParcelLayer);
+    highlightedParcelLayer = L.geoJSON(f, {
+        style: { color: '#38bdf8', weight: 3, fillColor: '#0ea5e9', fillOpacity: 0.22 },
+    }).addTo(map);
+    highlightedParcelLayer.bringToFront();
+}
+
+function findZoneForParcel(parcelFeature) {
+    if (!originalGeoData) return null;
+    const centroid = turf.centroid(parcelFeature);
+    for (const zf of originalGeoData.features) {
+        try { if (turf.booleanPointInPolygon(centroid, zf)) return zf.properties; }
+        catch { continue; }
+    }
+    return null;
+}
+
+// ── RENDER: PARCELA ──────────────────────────────────────────────────────────
+function renderParcelPanel(p, zp) {
+    ph('ph-parcela', false);
+
+    const addr = [p.CallePadro, p.AlturaPadr,
+                  p.PisoPadron  ? `Piso ${p.PisoPadron}`  : null,
+                  p.DeptoPadro  ? `Dpto. ${p.DeptoPadro}` : null]
+        .filter(Boolean).join(', ');
+
+    const specialTags = [];
+    if (p.jubilados    === 'SI' || p.jubilados    === '1') specialTags.push(`<span class="tag tag-teal"><i class="fa-solid fa-star-of-life"></i> Jubilado</span>`);
+    if (p.verdes       === 'SI' || p.verdes       === '1') specialTags.push(`<span class="tag tag-teal"><i class="fa-solid fa-leaf"></i> Área Verde</span>`);
+    if (p.municipalidad=== 'SI' || p.municipalidad=== '1') specialTags.push(`<span class="tag tag-orange"><i class="fa-solid fa-building-columns"></i> Municipal</span>`);
+    if (p.gobierno     === 'SI' || p.gobierno     === '1') specialTags.push(`<span class="tag tag-orange"><i class="fa-solid fa-landmark"></i> Gobierno</span>`);
+    if (p.IPV          === 'SI' || p.IPV          === '1') specialTags.push(`<span class="tag tag-purple"><i class="fa-solid fa-house-chimney"></i> IPV</span>`);
+    if (p.condicion_especial && !['0',''].includes(p.condicion_especial))
+        specialTags.push(`<span class="tag tag-orange">${p.condicion_especial}</span>`);
+
+    const fosReal = (p.SupCUBIERTAGIS_2025 && p.SupTotal && Number(p.SupTotal) > 0)
+        ? (Number(p.SupCUBIERTAGIS_2025) / Number(p.SupTotal) * 100).toFixed(1)
+        : null;
+
+    const zoneColor = zp ? getZoneColor(zp.codigo) : '#38bdf8';
+
+    let html = `
+    <!-- ID CARD -->
+    <div class="card" style="border-top:3px solid #38bdf8;">
+        <div class="card-body" style="padding:12px;">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#38bdf8;margin-bottom:6px;display:flex;align-items:center;gap:5px;">
+                <i class="fa-solid fa-id-card"></i> Identificación Catastral
+            </div>
+            <div style="font-size:24px;font-weight:900;color:var(--text-1);line-height:1;letter-spacing:-.02em;">${p.padronmuni || 'S/D'}</div>
+            <div style="font-size:10px;color:#38bdf8;font-weight:700;font-family:monospace;margin-top:4px;">${p.nomenclatu || ''}</div>
+            <div style="font-size:10px;color:var(--text-2);font-weight:500;margin-top:2px;">${p.nomen_20 || ''}</div>
+            ${p.tipo_lote ? `<div style="margin-top:8px;"><span class="pill pill-sky"><i class="fa-solid fa-tag"></i> ${p.tipo_lote}</span></div>` : ''}
+        </div>
     </div>
 
-    <script>
-        const map = L.map('map', { zoomControl: false, minZoom: 10 }).setView([-33.05, -68.90], 11);
-        L.control.zoom({ position: 'topright' }).addTo(map);
+    <!-- UBICACIÓN -->
+    ${(addr || p.ManzanaPad || p.Barrio) ? `
+    <div class="card">
+        <div class="card-hdr"><span class="card-title"><i class="fa-solid fa-location-dot"></i> Ubicación</span></div>
+        <div class="card-body" style="display:grid;gap:8px;">
+            ${addr ? `<div class="field"><span class="fl">Dirección</span><span class="fv">${addr}</span></div>` : ''}
+            ${(p.ManzanaPad || p.LotePadron || p.FraccionPa) ? `
+            <div class="grid2">
+                ${p.ManzanaPad  ? `<div class="field"><span class="fl">Manzana</span><span class="fv mono">${p.ManzanaPad}</span></div>` : ''}
+                ${p.LotePadron  ? `<div class="field"><span class="fl">Lote</span><span class="fv mono">${p.LotePadron}</span></div>` : ''}
+                ${p.FraccionPa  ? `<div class="field"><span class="fl">Fracción</span><span class="fv mono">${p.FraccionPa}</span></div>` : ''}
+            </div>` : ''}
+            ${(p.Barrio || p.LocalidadP) ? `
+            <div class="grid2">
+                ${p.Barrio      ? `<div class="field"><span class="fl">Barrio</span><span class="fv">${p.Barrio}</span></div>` : ''}
+                ${p.LocalidadP  ? `<div class="field"><span class="fl">Localidad</span><span class="fv">${p.LocalidadP}</span></div>` : ''}
+            </div>` : ''}
+        </div>
+    </div>` : ''}
 
-        const baseLayers = {
-            "Mapa Oscuro": L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }),
-            "Mapa Claro": L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' })
-        };
-        baseLayers["Mapa Oscuro"].addTo(map);
+    <!-- SUPERFICIES -->
+    <div class="card">
+        <div class="card-hdr"><span class="card-title"><i class="fa-solid fa-vector-square"></i> Superficies</span></div>
+        <div class="card-body">
+            <div class="grid2" style="margin-bottom:8px;">
+                <div class="mbox">
+                    <div class="ml">Sup. Total Padrón</div>
+                    <div class="mv">${p.SupTotal ? Number(p.SupTotal).toLocaleString('es-AR') : 'S/D'}</div>
+                    ${p.SupTotal ? `<div class="mu">m²</div>` : ''}
+                </div>
+                <div class="mbox">
+                    <div class="ml">Frente</div>
+                    <div class="mv">${p.FrenMetros ? Number(p.FrenMetros).toFixed(2) : 'S/D'}</div>
+                    ${p.FrenMetros ? `<div class="mu">metros</div>` : ''}
+                </div>
+                <div class="mbox">
+                    <div class="ml">Cubierta GIS 2025</div>
+                    <div class="mv">${p.SupCUBIERTAGIS_2025 ? Number(p.SupCUBIERTAGIS_2025).toLocaleString('es-AR', {maximumFractionDigits:1}) : 'S/D'}</div>
+                    ${p.SupCUBIERTAGIS_2025 ? `<div class="mu">m²</div>` : ''}
+                </div>
+                <div class="mbox">
+                    <div class="ml">Pileta GIS 2025</div>
+                    <div class="mv">${p.SupCubiertaPILETAGIS_2025 ? Number(p.SupCubiertaPILETAGIS_2025).toLocaleString('es-AR', {maximumFractionDigits:1}) : 'S/D'}</div>
+                    ${p.SupCubiertaPILETAGIS_2025 ? `<div class="mu">m²</div>` : ''}
+                </div>
+            </div>
+            ${fosReal ? `
+            <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+                    <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);">F.O.S. Real (GIS)</span>
+                    <span style="font-size:12px;font-weight:800;color:${parseFloat(fosReal)>70?'#f87171':parseFloat(fosReal)>50?'#fbbf24':'#34d399'};">${fosReal}%</span>
+                </div>
+                <div class="prog-track">
+                    <div class="prog-bar" style="width:${Math.min(parseFloat(fosReal),100)}%;background:${parseFloat(fosReal)>70?'#ef4444':parseFloat(fosReal)>50?'#f59e0b':'#10b981'};"></div>
+                </div>
+            </div>` : ''}
+        </div>
+    </div>`;
 
-        let geojsonLayer = null, originalGeoData = null, csvData = null, selectedZoneCode = null;
-        let highlightedParcelLayer = null;
+    // TITULAR
+    if (p.ApellidoTi || p.NombresTit) {
+        html += `
+    <div class="card">
+        <div class="card-hdr"><span class="card-title"><i class="fa-solid fa-user"></i> Titular</span></div>
+        <div class="card-body" style="display:grid;gap:8px;">
+            <div class="field">
+                <span class="fl">Apellido y Nombre</span>
+                <span class="fv">${[p.ApellidoTi, p.NombresTit].filter(Boolean).join(', ')}</span>
+            </div>
+            ${(p.TipoDocDes || p.DocumentoT) ? `
+            <div class="grid2">
+                ${p.TipoDocDes ? `<div class="field"><span class="fl">Tipo Doc.</span><span class="fv">${p.TipoDocDes}</span></div>` : ''}
+                ${p.DocumentoT ? `<div class="field"><span class="fl">Documento</span><span class="fv mono">${p.DocumentoT}</span></div>` : ''}
+            </div>` : ''}
+        </div>
+    </div>`;
+    }
 
-        const GEOJSON_FILE = 'zonificacion_14517.geojson';
-        const CSV_FILE = 'matriz_usos.csv';
-        
-        const GEOSERVER_WMS_URL = 'https://visorgis.lujandecuyo.gob.ar/geoserver/geonode/wms';
-        const GEOSERVER_WFS_URL = 'https://visorgis.lujandecuyo.gob.ar/geoserver/geonode/ows';
-        const PARCEL_LAYER_NAME = 'geonode:parcelario_catastral_new';
+    // ZONA NORMATIVA (resumen)
+    html += zp ? `
+    <div class="card" style="border-top:3px solid ${zoneColor};">
+        <div class="card-body" style="padding:12px;">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:${zoneColor};margin-bottom:6px;display:flex;align-items:center;gap:5px;">
+                <i class="fa-solid fa-map"></i> Zona Normativa
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                <div>
+                    <div style="font-size:20px;font-weight:900;color:${zoneColor};line-height:1;">${zp.codigo}</div>
+                    <div style="font-size:10px;color:var(--text-2);margin-top:3px;">${zp.zona_ || ''}</div>
+                </div>
+                <button class="link-btn" style="width:auto;padding:5px 12px;" onclick="switchTab('zona')">
+                    Ver indicadores <i class="fa-solid fa-arrow-right" style="font-size:9px;"></i>
+                </button>
+            </div>
+        </div>
+    </div>` : `
+    <div class="card">
+        <div class="card-body" style="text-align:center;padding:14px;font-size:11px;color:var(--text-3);">
+            <i class="fa-solid fa-circle-exclamation" style="color:#f87171;margin-right:5px;"></i>
+            Parcela fuera de los límites de zonificación regulados.
+        </div>
+    </div>`;
 
-        const legendConfig = [
-            { label: 'Centralidad / Mixto', prefixes: ['ZC', 'ZCM'], color: '#ef4444' },
-            { label: 'Residencial (ZR)', prefixes: ['ZR1', 'ZR2', 'ZR3', 'ZR4', 'ZR5'], color: '#f59e0b' },
-            { label: 'Residencial Mixto', prefixes: ['ZRM'], color: '#ec4899' },
-            { label: 'Industrial / Act.', prefixes: ['ZI', 'ZIP', 'ZIA', 'ZIN'], color: '#8b5cf6' },
-            { label: 'Rural / Agrícola', prefixes: ['ZRUR', 'ZAGT', 'ZVIT'], color: '#10b981' },
-            { label: 'Amortiguación / Esp.', prefixes: ['ZAE', 'ZRA', 'ZCON', 'ZAI', 'ZCA'], color: '#059669' },
-            { label: 'Recreativo / Verde', prefixes: ['ZREC', 'ZREC1', 'ZREC2'], color: '#06b6d4' },
-            { label: 'Otros / Servicios', prefixes: ['ZSER', 'ZED', 'ZEPM', 'ZPET', 'ZPRIL'], color: '#64748b' }
-        ];
+    // CONDICIONES ESPECIALES
+    if (specialTags.length || p.estado_barrio || p.ORDENANZA) {
+        html += `
+    <div class="card">
+        <div class="card-hdr"><span class="card-title"><i class="fa-solid fa-certificate"></i> Condiciones Especiales</span></div>
+        <div class="card-body" style="display:flex;flex-wrap:wrap;gap:5px;">
+            ${specialTags.join('')}
+            ${p.estado_barrio ? `<span class="tag tag-teal">${p.estado_barrio}</span>` : ''}
+            ${p.ORDENANZA ? `<span class="tag tag-orange"><i class="fa-solid fa-scroll"></i> Ord. ${p.ORDENANZA}</span>` : ''}
+        </div>
+    </div>`;
+    }
 
-        const parcelWMS = L.tileLayer.wms(GEOSERVER_WMS_URL, {
-            layers: PARCEL_LAYER_NAME,
-            format: 'image/png',
-            transparent: true,
-            version: '1.1.1',
-            attribution: "Catastro Municipal Luján de Cuyo",
-            opacity: 0.9
-        }).addTo(map);
+    document.getElementById('parcela-data').innerHTML = html;
+    document.getElementById('parcela-data').style.display = 'block';
+}
 
-        const overlayLayers = {
-            "📐 Parcelario Catastral (WMS)": parcelWMS
-        };
-        const layerControl = L.control.layers(baseLayers, overlayLayers, { collapsed: false, position: 'topright' }).addTo(map);
+// ── RENDER: ZONA ─────────────────────────────────────────────────────────────
+function renderZonePanel(zp) {
+    if (!zp) { ph('ph-zona', true); document.getElementById('zona-data').style.display = 'none'; return; }
+    ph('ph-zona', false);
+    const color = getZoneColor(zp.codigo);
 
-        let isDarkMode = true;
-        const themeToggleBtn = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-icon');
-        const themeText = document.getElementById('theme-text');
+    const html = `
+    <!-- ENCABEZADO -->
+    <div class="card" style="border-top:3px solid ${color};">
+        <div class="card-body" style="padding:12px;">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;">
+                <div>
+                    <div style="font-size:28px;font-weight:900;color:${color};line-height:1;letter-spacing:-.02em;">${zp.codigo || 'S/D'}</div>
+                    <div style="font-size:11px;font-weight:600;color:var(--text-2);margin-top:5px;line-height:1.3;">${zp.zona_ || 'ZONA SIN DENOMINACIÓN'}</div>
+                </div>
+                <span style="font-size:9px;background:var(--bg-elevated);border:1px solid var(--border-sub);border-radius:5px;padding:3px 8px;color:var(--text-3);font-weight:700;text-transform:uppercase;white-space:nowrap;flex-shrink:0;">Ord. 14517</span>
+            </div>
+        </div>
+    </div>
 
-        themeToggleBtn.addEventListener('click', () => {
-            isDarkMode = !isDarkMode;
-            if (isDarkMode) {
-                document.body.classList.remove('light-theme');
-                themeIcon.className = "fa-solid fa-sun text-amber-400"; themeText.innerText = "Modo Claro";
-                map.removeLayer(baseLayers["Mapa Claro"]); baseLayers["Mapa Oscuro"].addTo(map);
-                
-                // Opacidad optimizada para fondo oscuro
-                if (geojsonLayer) geojsonLayer.setStyle({ fillOpacity: 0.45, weight: 1.2 });
-            } else {
-                document.body.classList.add('light-theme');
-                themeIcon.className = "fa-solid fa-moon text-indigo-600"; themeText.innerText = "Modo Oscuro";
-                map.removeLayer(baseLayers["Mapa Oscuro"]); baseLayers["Mapa Claro"].addTo(map);
-                
-                // MODO CLARO CRÍTICO: Bajamos opacidad del GeoJSON a 0.18 para dar prioridad visual absoluta al WMS catastral
-                if (geojsonLayer) geojsonLayer.setStyle({ fillOpacity: 0.18, weight: 0.8 });
-            }
-            if (selectedZoneCode) processLandUses(selectedZoneCode, document.getElementById('search-activity').value);
-            if (map.hasLayer(parcelWMS)) { parcelWMS.bringToFront(); }
-        });
+    <!-- INDICADORES -->
+    <div class="card">
+        <div class="card-hdr"><span class="card-title"><i class="fa-solid fa-chart-bar"></i> Indicadores Morfológicos</span></div>
+        <div class="card-body">
+            <div class="grid2">
+                <div class="mbox">
+                    <div class="ml"><i class="fa-solid fa-chart-pie" style="color:${color};margin-right:3px;font-size:9px;"></i> F.O.S Máximo</div>
+                    <div class="mv">${zp.fos || 'S/D'}</div>
+                    ${zp.fos ? `<div class="mu">% de la parcela</div>` : ''}
+                </div>
+                <div class="mbox">
+                    <div class="ml"><i class="fa-solid fa-arrows-up-down" style="color:${color};margin-right:3px;font-size:9px;"></i> Altura Máx.</div>
+                    <div class="mv">${zp.alt_max || 'S/D'}</div>
+                    ${zp.alt_max ? `<div class="mu">metros</div>` : ''}
+                </div>
+                <div class="mbox">
+                    <div class="ml"><i class="fa-solid fa-vector-square" style="color:${color};margin-right:3px;font-size:9px;"></i> Lote Mínimo</div>
+                    <div class="mv">${zp.lote_min ? Number(zp.lote_min).toLocaleString('es-AR') : 'S/D'}</div>
+                    ${zp.lote_min ? `<div class="mu">m²</div>` : ''}
+                </div>
+                <div class="mbox">
+                    <div class="ml"><i class="fa-solid fa-ruler-horizontal" style="color:${color};margin-right:3px;font-size:9px;"></i> Frente Mínimo</div>
+                    <div class="mv">${zp.lado_min || 'S/D'}</div>
+                    ${zp.lado_min ? `<div class="mu">metros</div>` : ''}
+                </div>
+            </div>
+        </div>
+    </div>
 
-        const btnMorf = document.getElementById('btn-tab-morfologia');
-        const btnUsos = document.getElementById('btn-tab-usos');
-        const panelMorf = document.getElementById('panel-morfologia');
-        const panelUsos = document.getElementById('panel-usos');
+    <!-- RETIROS -->
+    <div class="card">
+        <div class="card-hdr"><span class="card-title"><i class="fa-solid fa-compress"></i> Retiros Obligatorios</span></div>
+        <div class="card-body">
+            <div class="grid3">
+                <div class="rbox"><div class="rl">Frontal</div><div class="rv">${zp.retiro_fro || '0'}</div><div class="ru">m</div></div>
+                <div class="rbox"><div class="rl">Lateral</div><div class="rv">${zp.retiro_lat || '0'}</div><div class="ru">m</div></div>
+                <div class="rbox"><div class="rl">Posterior</div><div class="rv">${zp.retiro_pos || '0'}</div><div class="ru">m</div></div>
+            </div>
+        </div>
+    </div>
 
-        btnMorf.addEventListener('click', () => {
-            btnMorf.className = "flex-1 py-3 text-center font-black border-b-2 border-[#ffbf00] text-[#ffbf00] uppercase tracking-wider cursor-pointer";
-            btnUsos.className = "flex-1 py-3 text-center font-black border-b-2 border-transparent theme-text-muted hover:text-[#ffbf00] uppercase tracking-wider cursor-pointer";
-            panelMorf.classList.remove('hidden'); panelUsos.classList.add('hidden');
-        });
+    <!-- RESUMEN USOS -->
+    <div class="card">
+        <div class="card-hdr"><span class="card-title"><i class="fa-solid fa-chart-pie"></i> Resumen Usos del Suelo</span></div>
+        <div class="card-body" style="display:grid;gap:10px;">
+            <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <span style="font-size:10px;font-weight:700;color:#34d399;">Permitidos</span>
+                    <span id="z-pct-perm" style="font-size:11px;font-weight:800;color:#34d399;">—</span>
+                </div>
+                <div class="prog-track"><div id="z-bar-perm" class="prog-bar" style="background:#10b981;width:0%;"></div></div>
+                <div style="font-size:9px;color:var(--text-3);margin-top:3px;"><span id="z-cnt-perm">—</span> rubros</div>
+            </div>
+            <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <span style="font-size:10px;font-weight:700;color:#fbbf24;">Condicionados</span>
+                    <span id="z-pct-cond" style="font-size:11px;font-weight:800;color:#fbbf24;">—</span>
+                </div>
+                <div class="prog-track"><div id="z-bar-cond" class="prog-bar" style="background:#f59e0b;width:0%;"></div></div>
+                <div style="font-size:9px;color:var(--text-3);margin-top:3px;"><span id="z-cnt-cond">—</span> rubros</div>
+            </div>
+            <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <span style="font-size:10px;font-weight:700;color:#f87171;">Prohibidos</span>
+                    <span id="z-pct-proh" style="font-size:11px;font-weight:800;color:#f87171;">—</span>
+                </div>
+                <div class="prog-track"><div id="z-bar-proh" class="prog-bar" style="background:#ef4444;width:0%;"></div></div>
+                <div style="font-size:9px;color:var(--text-3);margin-top:3px;"><span id="z-cnt-proh">—</span> rubros</div>
+            </div>
+            <button class="link-btn" onclick="switchTab('usos')">
+                Ver detalle de usos <i class="fa-solid fa-arrow-right" style="font-size:9px;"></i>
+            </button>
+        </div>
+    </div>`;
 
-        btnUsos.addEventListener('click', () => {
-            btnUsos.className = "flex-1 py-3 text-center font-black border-b-2 border-[#ffbf00] text-[#ffbf00] uppercase tracking-wider cursor-pointer";
-            btnMorf.className = "flex-1 py-3 text-center font-black border-b-2 border-transparent theme-text-muted hover:text-[#ffbf00] uppercase tracking-wider cursor-pointer";
-            panelUsos.classList.remove('hidden'); panelMorf.classList.add('hidden');
-        });
+    document.getElementById('zona-data').innerHTML = html;
+    document.getElementById('zona-data').style.display = 'block';
+}
 
-        function toggleAccordion(id) { document.getElementById(id).classList.toggle('hidden'); }
-        
-        function getZoneColor(code) {
-            if (!code) return '#64748b';
-            const c = code.toUpperCase().trim();
-            for (const item of legendConfig) {
-                for (const p of item.prefixes) { if (c.startsWith(p)) return item.color; }
-            }
-            return '#64748b';
-        }
+// ── RENDER: USOS ─────────────────────────────────────────────────────────────
+function renderUsesPanel(zoneCode) {
+    if (!zoneCode || !csvData) { ph('ph-usos', true); document.getElementById('usos-data').style.display = 'none'; return; }
+    ph('ph-usos', false);
 
-        function populateLegend() {
-            const container = document.getElementById('map-legend-items'); container.innerHTML = '';
-            legendConfig.forEach(item => {
-                const el = `<div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-sm border border-slate-700/40 shadow-inner" style="background-color: ${item.color}; fill-opacity: 0.55;"></span><span class="theme-text-muted text-[10px] font-bold leading-tight">${item.label}</span></div>`;
-                container.insertAdjacentHTML('beforeend', el);
-            });
-        }
+    const norm = zoneCode.trim().toUpperCase();
+    const groups = { perm: {}, cond: {}, proh: {} };
+    let total = 0, nPerm = 0, nCond = 0, nProh = 0;
 
-        window.addEventListener('DOMContentLoaded', () => {
-            populateLegend();
-            fetch(GEOJSON_FILE).then(r => r.json()).then(data => handleGeoJSONSuccess(data)).catch(e => console.error("Error GeoJSON"));
-            fetch(CSV_FILE).then(r => r.text()).then(txt => { Papa.parse(txt, { header: true, skipEmptyLines: true, complete: r => csvData = r.data }); });
-        });
+    csvData.forEach(row => {
+        const destino = row['DESTINO'] || '';
+        const rubro   = (row['USO'] || 'GENERAL').trim().toUpperCase();
+        const valor   = (row[norm] || '').trim();
+        const uea     = ['SI','SÍ','TRUE','1'].includes((row['UEA'] || '').trim().toUpperCase());
+        if (!destino) return;
+        total++;
+        const item = { destino, valor, uea };
+        if      (valor === '1') { nPerm++; if (!groups.perm[rubro]) groups.perm[rubro] = []; groups.perm[rubro].push(item); }
+        else if (valor === '3') { nProh++; if (!groups.proh[rubro]) groups.proh[rubro] = []; groups.proh[rubro].push(item); }
+        else if (valor !== '')  { nCond++; if (!groups.cond[rubro]) groups.cond[rubro] = []; groups.cond[rubro].push(item); }
+    });
 
-        function handleGeoJSONSuccess(data) {
-            originalGeoData = data; 
-            renderGeoJSON(data); 
-            buildStatistics(data);
-            document.getElementById('search-global').disabled = false;
-            document.getElementById('kpi-panel').classList.remove('hidden');
-            if (geojsonLayer) { const b = geojsonLayer.getBounds(); if (b.isValid()) map.fitBounds(b, { padding: [30, 30] }); }
-        }
+    const pP = total > 0 ? Math.round(nPerm / total * 100) : 0;
+    const pC = total > 0 ? Math.round(nCond / total * 100) : 0;
+    const pH = total > 0 ? Math.round(nProh / total * 100) : 0;
 
-        function renderGeoJSON(geojson) {
-            if (geojsonLayer) { 
-                layerControl.removeLayer(geojsonLayer);
-                map.removeLayer(geojsonLayer); 
-            }
-            
-            const currentOpacity = isDarkMode ? 0.45 : 0.18;
-            const currentWeight = isDarkMode ? 1.2 : 0.8;
+    // Actualizar barras en panel Zona (si está renderizado)
+    const trySet  = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    const trySetW = (id, val) => { const el = document.getElementById(id); if (el) el.style.width  = val; };
+    trySet('z-pct-perm', `${pP}%`); trySetW('z-bar-perm', `${pP}%`); trySet('z-cnt-perm', nPerm);
+    trySet('z-pct-cond', `${pC}%`); trySetW('z-bar-cond', `${pC}%`); trySet('z-cnt-cond', nCond);
+    trySet('z-pct-proh', `${pH}%`); trySetW('z-bar-proh', `${pH}%`); trySet('z-cnt-proh', nProh);
 
-            geojsonLayer = L.geoJSON(geojson, {
-                style: (f) => ({ fillColor: getZoneColor(f.properties.codigo), weight: currentWeight, opacity: 0.7, color: '#1e293b', fillOpacity: currentOpacity }),
-                onEachFeature: function(feature, layer) {
-                    if (feature.properties && feature.properties.codigo) {
-                        layer.bindTooltip(`<strong>${feature.properties.codigo}</strong><br>${feature.properties.zona_ || ''}`, { sticky: true, className: 'bg-slate-900 text-slate-100 border text-xs p-2 shadow-2xl' });
-                    }
-                    layer.on('click', function(e) {
-                        if (!e.originalEvent || !e.originalEvent._parcelClicked) {
-                            document.getElementById('ficha-catastral').classList.add('hidden');
-                            selectedZoneCode = feature.properties.codigo;
-                            inspectFeature(feature.properties);
-                            highlightZoneLayer(layer);
-                        }
-                    });
-                }
-            }).addTo(map);
+    // Badge en tab
+    const badge = document.getElementById('badge-usos');
+    badge.textContent = nPerm; badge.style.display = 'inline-block';
 
-            layerControl.addOverlay(geojsonLayer, "🗺️ Zonificación (Ord. 14517)");
-            parcelWMS.bringToFront();
-        }
-
-        function highlightZoneLayer(layer) {
-            geojsonLayer.eachLayer(l => geojsonLayer.resetStyle(l));
-            const activeOpacity = isDarkMode ? 0.6 : 0.35;
-            layer.setStyle({ weight: 3.5, color: '#ffbf00', fillOpacity: activeOpacity });
-            if (map.hasLayer(parcelWMS)) { parcelWMS.bringToFront(); }
-        }
-
-        function findZoneForParcel(parcelFeature) {
-            if (!originalGeoData) return null;
-            const centroid = turf.centroid(parcelFeature);
-            for (let zoneFeature of originalGeoData.features) {
-                try {
-                    if (turf.booleanPointInPolygon(centroid, zoneFeature)) { return zoneFeature.properties; }
-                } catch (err) { continue; }
-            }
-            return null;
-        }
-
-        function inspectFeature(zoneProps, parcelProps = null) {
-            document.getElementById('inspector-placeholder').className = 'hidden';
-            panelMorf.classList.remove('hidden');
-
-            if (parcelProps) {
-                document.getElementById('ficha-catastral').classList.remove('hidden');
-                document.getElementById('cat-padron').innerText = parcelProps.padronmuni || 'S/D';
-                document.getElementById('cat-nomen').innerText = parcelProps.nomen_20 || 'S/D';
-            } else {
-                document.getElementById('ficha-catastral').classList.add('hidden');
-            }
-
-            if (zoneProps) {
-                document.getElementById('insp-codigo').innerText = zoneProps.codigo || 'S/D';
-                document.getElementById('insp-nombre').innerText = zoneProps.zona_ || 'ZONA SIN DENOMINACIÓN';
-                
-                // Inyección dinámica con clases explícitas para alto contraste en modo claro/oscuro
-                document.getElementById('insp-fos').innerHTML = `<span class="text-lg font-black text-slate-900 dark:text-white">${zoneProps.fos ? zoneProps.fos + '%' : 'S/D'}</span>`;
-                document.getElementById('insp-altura').innerHTML = `<span class="text-lg font-black text-slate-900 dark:text-white">${zoneProps.alt_max ? zoneProps.alt_max + ' m' : 'S/D'}</span>`;
-                document.getElementById('insp-lote').innerHTML = `<span class="text-lg font-black text-slate-900 dark:text-white">${zoneProps.lote_min ? Number(zoneProps.lote_min).toLocaleString('es-AR') + ' m²' : 'S/D'}</span>`;
-                if(document.getElementById('insp-lado')) {
-                    document.getElementById('insp-lado').innerHTML = `<span class="text-lg font-black text-slate-900 dark:text-white">${zoneProps.lado_min ? zoneProps.lado_min + ' m' : 'S/D'}</span>`;
-                }
-
-                document.getElementById('insp-rf').innerHTML = `<span class="font-black text-slate-900 dark:text-white">${zoneProps.retiro_fro ? zoneProps.retiro_fro + ' m' : '0 m'}</span>`;
-                document.getElementById('insp-rl').innerHTML = `<span class="font-black text-slate-900 dark:text-white">${zoneProps.retiro_lat ? zoneProps.retiro_lat + ' m' : '0 m'}</span>`;
-                document.getElementById('insp-rp').innerHTML = `<span class="font-black text-slate-900 dark:text-white">${zoneProps.retiro_pos ? zoneProps.retiro_pos + ' m' : '0 m'}</span>`;
-                
-                selectedZoneCode = zoneProps.codigo;
-                processLandUses(zoneProps.codigo);
-            } else {
-                document.getElementById('insp-codigo').innerText = "FUERA DE MATRIZ";
-                document.getElementById('insp-nombre').innerText = "PARCELA FUERA DE LÍMITES URBANOS REGULADOS";
-                document.getElementById('insp-fos').innerHTML = `<span class="text-lg font-black text-slate-900 dark:text-white">90%</span>`;
-                document.getElementById('insp-altura').innerHTML = `<span class="text-lg font-black text-slate-900 dark:text-white">0 m</span>`;
-                document.getElementById('insp-lote').innerHTML = `<span class="text-lg font-black text-slate-900 dark:text-white">200 m²</span>`;
-                document.getElementById('insp-lado').innerHTML = `<span class="text-lg font-black text-slate-900 dark:text-white">10 m</span>`;
-                document.getElementById('insp-rf').innerHTML = `<span class="font-black text-slate-900 dark:text-white">0 m</span>`;
-                document.getElementById('insp-rl').innerHTML = `<span class="font-black text-slate-900 dark:text-white">0 m</span>`;
-                document.getElementById('insp-rp').innerHTML = `<span class="font-black text-slate-900 dark:text-white">0 m</span>`;
-                
-                selectedZoneCode = null;
-                resetUsesDashboard();
-            }
-        }
-
-        function resetUsesDashboard() {
-            document.getElementById('usos-zona-titulo').innerText = "S/N";
-            document.getElementById('pct-permitidos').innerText = "0%";
-            document.getElementById('pct-condicionados').innerText = "0%";
-            document.getElementById('pct-prohibidos').innerText = "0%";
-            document.getElementById('bar-permitidos').style.width = "0%";
-            document.getElementById('bar-condicionados').style.width = "0%";
-            document.getElementById('bar-prohibidos').style.width = "0%";
-            document.getElementById('morf-count-permitidos').innerText = "0";
-            document.getElementById('morf-count-condicionados').innerText = "0";
-            document.getElementById('morf-count-prohibidos').innerText = "0";
-            document.getElementById('btn-count-permitidos').innerText = "0";
-            document.getElementById('btn-count-condicionados').innerText = "0";
-            document.getElementById('btn-count-prohibidos').innerText = "0";
-            document.getElementById('list-permitidos').innerHTML = "";
-            document.getElementById('list-condicionados').innerHTML = "";
-            document.getElementById('list-prohibidos').innerHTML = "";
-        }
-
-        map.on('click', function(e) {
-            const size = map.getSize();
-            const bbox = map.getBounds().toBBoxString();
-            const point = map.latLngToContainerPoint(e.latlng, map.getZoom());
-
-            const url = `${GEOSERVER_WMS_URL}?REQUEST=GetFeatureInfo&SERVICE=WMS&VERSION=1.1.1` +
-                        `&LAYERS=${PARCEL_LAYER_NAME}&QUERY_LAYERS=${PARCEL_LAYER_NAME}` +
-                        `&INFO_FORMAT=application/json&BBOX=${bbox}&FEATURE_COUNT=1` +
-                        `&HEIGHT=${size.y}&WIDTH=${size.x}&X=${Math.round(point.x)}&Y=${Math.round(point.y)}` +
-                        `&SRS=EPSG:4326`;
-
-            fetch(url)
-                .then(r => r.json())
-                .then(geojson => {
-                    if (geojson.features && geojson.features.length > 0) {
-                        const parcel = geojson.features[0];
-                        e.originalEvent._parcelClicked = true; 
-                        highlightParcel(parcel);
-                        const matchedZoneProps = findZoneForParcel(parcel);
-                        inspectFeature(matchedZoneProps, parcel.properties);
-                    }
-                })
-                .catch(err => console.error("Error al recuperar datos espaciales:", err));
-        });
-
-        function highlightParcel(parcelFeature) {
-            if (highlightedParcelLayer) { map.removeLayer(highlightedParcelLayer); }
-            highlightedParcelLayer = L.geoJSON(parcelFeature, {
-                style: { color: '#0ea5e9', weight: 3.5, fillColor: '#0ea5e9', fillOpacity: 0.35 }
-            }).addTo(map);
-            highlightedParcelLayer.bringToFront();
-        }
-
-        document.getElementById('search-global').addEventListener('keydown', (e) => {
-            if (e.key !== 'Enter') return;
-            const v = e.target.value.trim().toUpperCase();
-            if (!originalGeoData || v === "") return;
-
-            if (/^\d+$/.test(v)) {
-                const wfsUrl = `${GEOSERVER_WFS_URL}?service=WFS&version=1.1.0&request=GetFeature&typeName=${PARCEL_LAYER_NAME}&outputFormat=application/json&srsName=EPSG:4326&cql_filter=padronmuni='${v}'`;
-                fetch(wfsUrl)
-                    .then(r => r.json())
-                    .then(geojson => {
-                        if (geojson.features && geojson.features.length > 0) {
-                            const parcel = geojson.features[0];
-                            highlightParcel(parcel);
-                            const tempLayer = L.geoJSON(parcel);
-                            map.fitBounds(tempLayer.getBounds(), { maxZoom: 18, padding: [40, 40] });
-                            const matchedZoneProps = findZoneForParcel(parcel);
-                            inspectFeature(matchedZoneProps, parcel.properties);
-                        } else {
-                            alert("Padrón no encontrado en el servidor catastral.");
-                        }
-                    }).catch(err => alert("Error de comunicación con el GeoServer."));
-            } else {
-                const filtered = originalGeoData.features.filter(feat => 
-                    (feat.properties.codigo && feat.properties.codigo.toUpperCase().includes(v)) ||
-                    (feat.properties.zona_ && feat.properties.zona_.toUpperCase().includes(v))
-                );
-                renderGeoJSON({ type: "FeatureCollection", features: filtered });
-            }
-        });
-
-        function processLandUses(zoneCode, keyword = "") {
-            document.getElementById('usos-zona-titulo').innerText = zoneCode;
-            
-            const divPerm = document.getElementById('list-permitidos');
-            const divCond = document.getElementById('list-condicionados');
-            const divProh = document.getElementById('list-prohibidos');
-            
-            divPerm.innerHTML = ""; divCond.innerHTML = ""; divProh.innerHTML = "";
-
-            if (!csvData || csvData.length === 0) return;
-            const normalizedZone = zoneCode.trim().toUpperCase();
-
-            const groupsPerm = {}, groupsCond = {}, groupsProh = {};
-            let totalValidos = 0;
-            let countPerm = 0, countCond = 0, countProh = 0;
-
-            csvData.forEach(row => {
-                const destino = row['DESTINO'] || '';
-                const rubroGeneral = (row['USO'] || 'GENERAL').trim().toUpperCase();
-                const valorRegulacion = (row[normalizedZone] || '').trim();
-                const ueaValor = (row['UEA'] || '').trim().toUpperCase();
-                const tieneUEA = ueaValor === 'SI' || ueaValor === 'SÍ' || ueaValor === 'TRUE' || ueaValor === '1';
-
-                if (!destino) return;
-                if (keyword && !destino.toUpperCase().includes(keyword.toUpperCase()) && !rubroGeneral.includes(keyword.toUpperCase())) { 
-                    return; 
-                }
-
-                totalValidos++;
-
-                // ItemHtml rediseñado con texto explícito slate-800 para legibilidad total en fondo claro
-                const itemHtml = `
-                    <div class="p-2 mb-1 bg-slate-100 dark:bg-slate-800/40 rounded border border-slate-200 dark:border-slate-700/60 flex items-center justify-between gap-3 text-[11px]">
-                        <span class="font-semibold text-slate-800 dark:text-slate-200 leading-snug">${destino}</span>
-                        <div class="flex items-center gap-1.5 shrink-0">
-                            ${valorRegulacion !== '1' && valorRegulacion !== '3' && valorRegulacion !== '' 
-                                ? `<span class="bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border border-amber-500/40">Art. ${valorRegulacion}</span>` 
-                                : ''
-                            }
-                            ${tieneUEA 
-                                ? `<span class="bg-teal-500/10 text-teal-700 dark:text-teal-400 text-[9px] font-bold px-1.5 py-0.5 rounded border border-teal-500/30 flex items-center gap-1"><i class="fa-solid fa-leaf text-[8px]"></i> UEA</span>` 
-                                : ''
-                            }
+    function buildSection(groupObj) {
+        const rubros = Object.keys(groupObj).sort();
+        if (!rubros.length)
+            return `<div style="padding:12px;text-align:center;font-size:11px;color:var(--text-3);font-style:italic;">Sin actividades registradas.</div>`;
+        return rubros.map(rubro => {
+            const id = 'acc-' + Math.random().toString(36).substr(2, 8);
+            return `<div class="acc-wrap">
+                <button class="acc-btn" onclick="document.getElementById('${id}').style.display=document.getElementById('${id}').style.display==='none'?'block':'none';">
+                    <div style="display:flex;align-items:center;gap:7px;flex:1;min-width:0;">
+                        <i class="fa-solid fa-folder" style="color:var(--gold);font-size:10px;flex-shrink:0;"></i>
+                        <span class="acc-rubro">${rubro}</span>
+                    </div>
+                    <span class="acc-count">${groupObj[rubro].length}</span>
+                </button>
+                <div class="acc-body" id="${id}" style="display:none;">
+                    ${groupObj[rubro].map(item => `
+                    <div class="use-item">
+                        <span class="use-name">${item.destino}</span>
+                        <div class="use-badges">
+                            ${item.valor !== '1' && item.valor !== '3' && item.valor !== '' ? `<span class="art-badge">Art. ${item.valor}</span>` : ''}
+                            ${item.uea ? `<span class="uea-badge"><i class="fa-solid fa-leaf" style="font-size:8px;"></i> UEA</span>` : ''}
                         </div>
-                    </div>`;
+                    </div>`).join('')}
+                </div>
+            </div>`;
+        }).join('');
+    }
 
-                if (valorRegulacion === '1') {
-                    if (!groupsPerm[rubroGeneral]) groupsPerm[rubroGeneral] = [];
-                    groupsPerm[rubroGeneral].push(itemHtml);
-                    countPerm++;
-                } else if (valorRegulacion === '3') {
-                    if (!groupsProh[rubroGeneral]) groupsProh[rubroGeneral] = [];
-                    groupsProh[rubroGeneral].push(itemHtml);
-                    countProh++;
-                } else if (valorRegulacion !== '') {
-                    if (!groupsCond[rubroGeneral]) groupsCond[rubroGeneral] = [];
-                    groupsCond[rubroGeneral].push(itemHtml);
-                    countCond++;
-                }
-            });
+    const html = `
+    <!-- ZONA ACTIVA -->
+    <div style="background:var(--bg-elevated);border:1px solid var(--border-sub);border-radius:8px;padding:8px 12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);">Zona activa</span>
+        <span style="font-size:14px;font-weight:900;color:${getZoneColor(zoneCode)};font-family:monospace;">${zoneCode}</span>
+    </div>
 
-            const pctPerm = totalValidos > 0 ? Math.round((countPerm / totalValidos) * 100) : 0;
-            const pctCond = totalValidos > 0 ? Math.round((countCond / totalValidos) * 100) : 0;
-            const pctProh = totalValidos > 0 ? Math.round((countProh / totalValidos) * 100) : 0;
+    <!-- FILTRO -->
+    <div style="position:relative;margin-bottom:10px;">
+        <i class="fa-solid fa-filter" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--gold);font-size:10px;pointer-events:none;"></i>
+        <input id="filter-usos" type="text" placeholder="Filtrar actividades…" class="sbar" style="padding-left:30px;width:100%;">
+    </div>
 
-            document.getElementById('pct-permitidos').innerText = `${pctPerm}%`;
-            document.getElementById('pct-condicionados').innerText = `${pctCond}%`;
-            document.getElementById('pct-prohibidos').innerText = `${pctProh}%`;
+    <!-- PERMITIDOS -->
+    <div class="uses-section" style="border:1px solid rgba(16,185,129,.2);">
+        <div class="uses-section-hdr" style="background:rgba(16,185,129,.08);border-bottom-color:rgba(16,185,129,.15);">
+            <span class="uses-section-title" style="color:#34d399;"><i class="fa-solid fa-square-check"></i> Permitidos / Dominantes</span>
+            <span class="uses-count" style="background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3);">${nPerm}</span>
+        </div>
+        <div class="uses-body" id="list-perm" style="background:var(--bg-base);">${buildSection(groups.perm)}</div>
+    </div>
 
-            document.getElementById('bar-permitidos').style.width = `${pctPerm}%`;
-            document.getElementById('bar-condicionados').style.width = `${pctCond}%`;
-            document.getElementById('bar-prohibidos').style.width = `${pctProh}%`;
+    <!-- CONDICIONADOS -->
+    <div class="uses-section" style="border:1px solid rgba(245,158,11,.2);">
+        <div class="uses-section-hdr" style="background:rgba(245,158,11,.08);border-bottom-color:rgba(245,158,11,.15);">
+            <span class="uses-section-title" style="color:#fbbf24;"><i class="fa-solid fa-triangle-exclamation"></i> Sujetos a Condición</span>
+            <span class="uses-count" style="background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3);">${nCond}</span>
+        </div>
+        <div class="uses-body" id="list-cond" style="background:var(--bg-base);">${buildSection(groups.cond)}</div>
+    </div>
 
-            document.getElementById('morf-count-permitidos').innerText = countPerm;
-            document.getElementById('morf-count-condicionados').innerText = countCond;
-            document.getElementById('morf-count-prohibidos').innerText = countProh;
+    <!-- PROHIBIDOS -->
+    <div class="uses-section" style="border:1px solid rgba(239,68,68,.2);">
+        <div class="uses-section-hdr" style="background:rgba(239,68,68,.08);border-bottom-color:rgba(239,68,68,.15);">
+            <span class="uses-section-title" style="color:#f87171;"><i class="fa-solid fa-square-xmark"></i> Prohibidos Explícitos</span>
+            <span class="uses-count" style="background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3);">${nProh}</span>
+        </div>
+        <div class="uses-body" id="list-proh" style="background:var(--bg-base);">${buildSection(groups.proh)}</div>
+    </div>`;
 
-            document.getElementById('btn-count-permitidos').innerText = Object.keys(groupsPerm).length;
-            document.getElementById('btn-count-condicionados').innerText = Object.keys(groupsCond).length;
-            document.getElementById('btn-count-prohibidos').innerText = Object.keys(groupsProh).length;
+    document.getElementById('usos-data').innerHTML = html;
+    document.getElementById('usos-data').style.display = 'block';
 
-            function renderGroupedAccordions(groups, container) {
-                const rubros = Object.keys(groups).sort();
-                if (rubros.length === 0) {
-                    container.innerHTML = `<div class="p-4 text-center text-slate-400 dark:text-slate-500 text-xs italic">Ninguna actividad registrada bajo esta condición.</div>`;
-                    return;
-                }
-
-                rubros.forEach((rubro) => {
-                    const randomId = `accordion-${Math.random().toString(36).substr(2, 9)}`;
-                    const itemsCount = groups[rubro].length;
-                    
-                    const accordionHtml = `
-                        <div class="border border-slate-200 dark:border-slate-800 rounded overflow-hidden mb-2 theme-card transition shadow-sm">
-                            <button onclick="document.getElementById('${randomId}').classList.toggle('hidden')" 
-                                    class="w-full p-2.5 flex items-center justify-between bg-slate-200/50 dark:bg-slate-800/60 hover:bg-slate-300/40 dark:hover:bg-slate-700/40 transition text-left cursor-pointer">
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-folder text-[#ffbf00] text-xs"></i>
-                                    <span class="font-black text-[11px] tracking-wider uppercase text-slate-700 dark:text-slate-200">${rubro}</span>
-                                </div>
-                                <span class="bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                                    ${itemsCount} ${itemsCount === 1 ? 'destino' : 'destinos'}
-                                </span>
-                            </button>
-                            <div id="${randomId}" class="hidden p-2 space-y-1 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
-                                ${groups[rubro].join('')}
-                            </div>
-                        </div>`;
-                    
-                    container.insertAdjacentHTML('beforeend', accordionHtml);
-                });
-            }
-
-            renderGroupedAccordions(groupsPerm, divPerm);
-            renderGroupedAccordions(groupsCond, divCond);
-            renderGroupedAccordions(groupsProh, divProh);
-
-            if (keyword) {
-                divPerm.classList.remove('hidden'); divCond.classList.remove('hidden'); divProh.classList.remove('hidden');
-                document.querySelectorAll('[id^="accordion-"]').forEach(el => el.classList.remove('hidden'));
-            }
-        }
-
-        document.getElementById('search-activity').addEventListener('input', (e) => {
-            if (selectedZoneCode) processLandUses(selectedZoneCode, e.target.value.trim());
+    // Filtro en tiempo real
+    document.getElementById('filter-usos').addEventListener('input', e => {
+        const kw = e.target.value.toLowerCase();
+        document.querySelectorAll('.use-item').forEach(el => {
+            const name = el.querySelector('.use-name')?.textContent.toLowerCase() || '';
+            el.style.display = name.includes(kw) ? '' : 'none';
         });
+        if (kw) document.querySelectorAll('.acc-body').forEach(el => el.style.display = 'block');
+    });
+}
 
-        document.getElementById('btn-clear-filters').addEventListener('click', () => {
-            if (!originalGeoData) return;
-            document.getElementById('search-global').value = "";
-            document.getElementById('search-activity').value = "";
+// ── BÚSQUEDA GLOBAL ──────────────────────────────────────────────────────────
+document.getElementById('search-global').addEventListener('keydown', async e => {
+    if (e.key !== 'Enter') return;
+    const v = e.target.value.trim().toUpperCase();
+    if (!originalGeoData || !v) return;
 
-            renderGeoJSON(originalGeoData);
-            if (highlightedParcelLayer) { map.removeLayer(highlightedParcelLayer); }
-            selectedZoneCode = null;
-
-            document.getElementById('inspector-placeholder').classList.remove('hidden');
-            document.getElementById('panel-morfologia').classList.add('hidden');
-            document.getElementById('panel-usos').classList.add('hidden');
-            document.getElementById('ficha-catastral').classList.add('hidden');
-            document.getElementById('btn-tab-morfologia').click();
-
-            if (geojsonLayer) { const b = geojsonLayer.getBounds(); if (b.isValid()) map.fitBounds(b, { padding: [30, 30] }); }
-        });
-
-        function buildStatistics(geojson) {
-            const features = geojson.features; document.getElementById('kpi-count').innerText = features.length;
-            let area = 0; features.forEach(f => { if (f.properties.sup_m2) area += Number(f.properties.sup_m2); });
-            document.getElementById('kpi-area').innerText = `${Number((area/10000).toFixed(0)).toLocaleString('es-AR')} ha`;
+    if (/^\d+$/.test(v)) {
+        showLoading(true);
+        setStatus(`Buscando padrón ${v}…`);
+        const url = `${WFS_URL}?service=WFS&version=1.1.0&request=GetFeature&typeName=${PARCEL_LAYER}&outputFormat=application/json&srsName=EPSG:4326&cql_filter=padronmuni='${v}'`;
+        try {
+            const res = await fetch(url);
+            const gj  = await res.json();
+            showLoading(false);
+            if (gj.features?.length > 0) {
+                const parcel = gj.features[0];
+                highlightParcel(parcel);
+                map.fitBounds(L.geoJSON(parcel).getBounds(), { maxZoom: 18, padding: [40, 40] });
+                const zp = findZoneForParcel(parcel);
+                renderParcelPanel(parcel.properties, zp);
+                if (zp) { selectedZoneCode = zp.codigo; renderZonePanel(zp); renderUsesPanel(zp.codigo); setChatContext(zp); }
+                switchTab('parcela');
+                setStatus(`Padrón ${v} localizado`);
+            } else {
+                showToast(`Padrón ${v} no encontrado en el parcelario.`);
+                setStatus(`Padrón ${v} no encontrado`);
+            }
+        } catch {
+            showLoading(false);
+            showToast('Error al consultar el servidor catastral.');
         }
-    </script>
+    } else {
+        const filtered = originalGeoData.features.filter(f =>
+            f.properties.codigo?.toUpperCase().includes(v) ||
+            f.properties.zona_?.toUpperCase().includes(v)
+        );
+        renderGeoJSON({ type: 'FeatureCollection', features: filtered });
+        if (filtered.length === 1) {
+            selectedZoneCode = filtered[0].properties.codigo;
+            renderZonePanel(filtered[0].properties);
+            renderUsesPanel(filtered[0].properties.codigo);
+            switchTab('zona');
+        }
+        showToast(`${filtered.length} zona${filtered.length !== 1 ? 's' : ''} encontrada${filtered.length !== 1 ? 's' : ''} para "${v}"`);
+    }
+});
+
+// ── LIMPIAR ──────────────────────────────────────────────────────────────────
+document.getElementById('btn-clear').addEventListener('click', () => {
+    document.getElementById('search-global').value = '';
+    if (highlightedParcelLayer) { map.removeLayer(highlightedParcelLayer); highlightedParcelLayer = null; }
+    if (originalGeoData) renderGeoJSON(originalGeoData);
+    selectedZoneCode = null;
+
+    ph('ph-parcela', true); document.getElementById('parcela-data').style.display = 'none';
+    ph('ph-zona',    true); document.getElementById('zona-data').style.display    = 'none';
+    ph('ph-usos',    true); document.getElementById('usos-data').style.display    = 'none';
+    document.getElementById('badge-usos').style.display = 'none';
+
+    switchTab('parcela');
+    if (geojsonLayer) {
+        const b = geojsonLayer.getBounds();
+        if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
+    }
+    setStatus(`${originalGeoData?.features?.length || 0} zonas cargadas`);
+});
+
+// ── ASISTENTE S.I.O.T. ───────────────────────────────────────────────────────
+let chatContext = null;
+
+const CHAT_CHIPS_DEF = [
+    { label: '✅ Usos permitidos',    action: 'permitidos' },
+    { label: '🚫 Usos prohibidos',    action: 'prohibidos' },
+    { label: '⚡ Condicionales',      action: 'condicionales' },
+    { label: '📐 Indicadores',        action: 'indicadores' },
+];
+
+const CHAT_NOTE = `<div style="font-size:9px;color:var(--text-3);margin-top:8px;padding-top:7px;border-top:1px solid rgba(148,163,184,0.12);">⚠️ Carácter informativo. No constituye habilitación ni certificado oficial.</div>`;
+
+function chatFindCol(codigo) {
+    if (!csvData?.length) return null;
+    const upper = codigo.toUpperCase();
+    return Object.keys(csvData[0]).find(k => k.toUpperCase() === upper) || null;
+}
+
+function chatUsosFilter(filterFn) {
+    if (!chatContext || !csvData?.length) return [];
+    const col = chatFindCol(chatContext.codigo);
+    if (!col) return [];
+    // Solo filas con DESTINO definido (actividades reales, no cabeceras)
+    return csvData.filter(r => (r.DESTINO || '').trim() && filterFn(String(r[col] ?? '').trim()));
+}
+
+function chatGroupByRubro(rows) {
+    // USO = rubro/categoría, DESTINO = actividad específica
+    const g = {};
+    rows.forEach(r => {
+        const rubro = (r.USO || 'General').trim();
+        if (!g[rubro]) g[rubro] = [];
+        const dest = (r.DESTINO || '—').trim();
+        if (dest && !g[rubro].includes(dest)) g[rubro].push(dest);
+    });
+    return g;
+}
+
+function chatRenderGroups(groups, showArticle, rows) {
+    let html = '';
+    for (const [rubro, dests] of Object.entries(groups)) {
+        html += `<div style="margin-bottom:8px;">
+            <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--gold);margin-bottom:3px;">${rubro}</div>`;
+        dests.forEach(dest => {
+            let extra = '';
+            if (showArticle && rows) {
+                const row = rows.find(r => (r.DESTINO || '').trim() === dest);
+                if (row) {
+                    const col = chatFindCol(chatContext.codigo);
+                    const val = col ? String(row[col] ?? '').trim() : '';
+                    if (val && val !== '1' && val !== '3') extra = ` <span style="font-size:9px;color:#fbbf24;font-family:monospace;">Art.${val}</span>`;
+                }
+            }
+            html += `<div style="font-size:10.5px;color:var(--text-2);padding:1px 0;">• ${dest}${extra}</div>`;
+        });
+        html += '</div>';
+    }
+    return html;
+}
+
+function chatRespond(action) {
+    if (!chatContext) {
+        addBotMsg('Primero seleccioná una zona haciendo clic en el mapa.');
+        return;
+    }
+    const code = chatContext.codigo;
+
+    if (action === 'indicadores') {
+        const p = chatContext;
+        const row = (lbl, val, unit = '') => (val != null && val !== '' && val !== '0')
+            ? `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(148,163,184,0.1);font-size:11px;">
+                <span style="color:var(--text-3);">${lbl}</span>
+                <span style="font-weight:700;color:var(--text-1);">${val}${unit}</span>
+               </div>` : '';
+        addBotMsg(
+            `<div style="font-weight:800;font-size:11px;margin-bottom:8px;">📐 Zona <span style="color:var(--gold);">${code}</span></div>` +
+            row('FOS máximo', p.fos, '%') +
+            row('Altura máxima', p.alt_max, ' m') +
+            row('Retiro frontal', p.retiro_fro, ' m') +
+            row('Retiro lateral', p.retiro_lat, ' m') +
+            row('Retiro posterior', p.retiro_pos, ' m') +
+            row('Lote mínimo', p.lote_min, ' m²') +
+            row('Lado mínimo', p.lado_min, ' m') +
+            CHAT_NOTE
+        );
+        return;
+    }
+
+    if (!csvData?.length) {
+        addBotMsg('La matriz de usos aún no cargó. Esperá un momento y volvé a intentarlo.');
+        return;
+    }
+    if (!chatFindCol(code)) {
+        addBotMsg(`No encontré la columna <strong>${code}</strong> en la matriz. Verificá que el código de zona exista.`);
+        return;
+    }
+
+    let rows, title, emoji;
+    if (action === 'permitidos')    { rows = chatUsosFilter(v => v === '1'); title = 'permitidos'; emoji = '✅'; }
+    if (action === 'prohibidos')    { rows = chatUsosFilter(v => v === '3'); title = 'prohibidos'; emoji = '🚫'; }
+    if (action === 'condicionales') { rows = chatUsosFilter(v => v !== '' && v !== '1' && v !== '3' && v !== '0' && /^\d+$/.test(v)); title = 'condicionales'; emoji = '⚡'; }
+
+    if (!rows?.length) {
+        addBotMsg(`No hay usos <strong>${title}</strong> registrados para <strong>${code}</strong> en la matriz.`);
+        return;
+    }
+    const groups = chatGroupByRubro(rows);
+    const showArt = action === 'condicionales';
+    addBotMsg(
+        `<div style="font-weight:800;font-size:11px;margin-bottom:8px;">${emoji} <span style="color:var(--gold);">${code}</span> — ${rows.length} usos ${title}:</div>` +
+        chatRenderGroups(groups, showArt, rows) +
+        CHAT_NOTE
+    );
+}
+
+function addBotMsg(html) {
+    const msgs = document.getElementById('chat-messages');
+    const el = document.createElement('div');
+    el.className = 'chat-msg bot';
+    el.innerHTML = html;
+    msgs.appendChild(el);
+    msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addUserMsg(text) {
+    const msgs = document.getElementById('chat-messages');
+    const el = document.createElement('div');
+    el.className = 'chat-msg user';
+    el.textContent = text;
+    msgs.appendChild(el);
+    msgs.scrollTop = msgs.scrollHeight;
+}
+
+function renderChatChips(enabled) {
+    document.getElementById('chat-chips').innerHTML = CHAT_CHIPS_DEF.map(s =>
+        `<button class="chat-chip" onclick="chatChipClick('${s.action}')"${enabled ? '' : ' disabled'}>${s.label}</button>`
+    ).join('');
+}
+
+function chatChipClick(action) {
+    const lbl = CHAT_CHIPS_DEF.find(s => s.action === action)?.label || action;
+    addUserMsg(lbl);
+    chatRespond(action);
+}
+
+function setChatContext(zoneProps) {
+    chatContext = zoneProps;
+    document.getElementById('chat-ctx-chip').textContent = zoneProps.codigo;
+    document.getElementById('chat-fab').classList.add('has-context');
+    renderChatChips(true);
+    const panel = document.getElementById('chat-panel');
+    if (panel.classList.contains('open')) {
+        addBotMsg(`📍 Zona activa: <strong style="color:var(--gold);">${zoneProps.codigo}</strong> — ${zoneProps.zona_ || ''}.<br>Seleccioná una opción o escribí tu consulta.`);
+    }
+}
+
+// Columnas del CSV que NO son códigos de zona
+const CHAT_NO_ZONE = new Set(['USO','ORDEN_U','COD_USO','DESTINO','UEA','ORDEN','']);
+
+function chatGetZoneCols() {
+    if (!csvData?.length) return [];
+    return Object.keys(csvData[0]).filter(k => !CHAT_NO_ZONE.has(k.trim().toUpperCase()) && k.trim());
+}
+
+function chatHighlightZonesForUso(actividad) {
+    if (!geojsonLayer || !csvData?.length) {
+        addBotMsg('El mapa de zonas no está disponible todavía.');
+        return;
+    }
+    const zoneCols = chatGetZoneCols();
+    const rows = csvData.filter(r => (r.DESTINO || '').trim() === actividad);
+    if (!rows.length) {
+        addBotMsg(`No encontré "<strong>${actividad}</strong>" en la matriz.`);
+        return;
+    }
+
+    // Construir mapa zona → estado para esta actividad
+    const zonaStatus = {};
+    rows.forEach(row => {
+        zoneCols.forEach(col => {
+            const val = String(row[col] ?? '').trim();
+            const zc  = col.trim().toUpperCase();
+            if      (val === '1')              zonaStatus[zc] = 'perm';
+            else if (val === '3')              zonaStatus[zc] = 'proh';
+            else if (val && /^\d+$/.test(val)) zonaStatus[zc] = 'cond';
+        });
+    });
+
+    const permCodes = Object.entries(zonaStatus).filter(([,v]) => v === 'perm').map(([k]) => k);
+    const condCodes = Object.entries(zonaStatus).filter(([,v]) => v === 'cond').map(([k]) => k);
+
+    // Aplicar estilos al GeoJSON
+    geojsonLayer.eachLayer(l => {
+        const code = (l.feature?.properties?.codigo || '').trim().toUpperCase();
+        const st   = zonaStatus[code];
+        if      (st === 'perm') l.setStyle({ fillColor:'#34d399', fillOpacity:.75, weight:2.5, color:'#059669', opacity:.9 });
+        else if (st === 'cond') l.setStyle({ fillColor:'#fbbf24', fillOpacity:.65, weight:2,   color:'#d97706', opacity:.9 });
+        else                    l.setStyle({ fillColor:'#0f172a', fillOpacity:.1,  weight:.4,  color:'#1e293b', opacity:.25 });
+    });
+    parcelWMS.bringToFront();
+
+    let html = `🗺️ <strong>${actividad}</strong> en el municipio:<br><br>`;
+    if (permCodes.length) {
+        html += `<span style="color:#34d399;font-size:12px;">●</span> <strong style="color:#34d399;">Permitido</strong> en ${permCodes.length} zona${permCodes.length !== 1 ? 's' : ''}:<br>
+                 <span style="font-size:9.5px;color:var(--text-3);">${permCodes.join(', ')}</span><br><br>`;
+    }
+    if (condCodes.length) {
+        html += `<span style="color:#fbbf24;font-size:12px;">●</span> <strong style="color:#fbbf24;">Condicional</strong> en ${condCodes.length} zona${condCodes.length !== 1 ? 's' : ''}:<br>
+                 <span style="font-size:9.5px;color:var(--text-3);">${condCodes.join(', ')}</span><br><br>`;
+    }
+    if (!permCodes.length && !condCodes.length) {
+        html += `<strong style="color:#f87171;">Prohibido</strong> en todas las zonas del municipio.`;
+    }
+    html += `<button class="chat-clear-btn" onclick="chatClearMapHighlight()">✕ Limpiar resaltado</button>`;
+    addBotMsg(html);
+}
+
+function chatClearMapHighlight() {
+    if (geojsonLayer) {
+        geojsonLayer.eachLayer(l => geojsonLayer.resetStyle(l));
+        parcelWMS.bringToFront();
+    }
+    addBotMsg('Resaltado eliminado. Mapa restaurado.');
+}
+
+function chatNorm(s) {
+    return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+function chatLookupUso(query) {
+    if (!chatContext || !csvData?.length) return [];
+    const col = chatFindCol(chatContext.codigo);
+    if (!col) return [];
+    const words = chatNorm(query).split(/\s+/).filter(Boolean);
+    return csvData
+        .filter(r => {
+            const dest = (r.DESTINO || '').trim();
+            if (!dest) return false; // saltar filas sin actividad
+            const rubro = (r.USO || '').trim();
+            return words.every(w => chatNorm(dest + ' ' + rubro).includes(w));
+        })
+        .map(r => {
+            const val = String(r[col] ?? '').trim();
+            const status = val === '1' ? 'permitido'
+                         : val === '3' ? 'prohibido'
+                         : (val !== '' && /^\d+$/.test(val)) ? 'condicional'
+                         : null;
+            return status ? {
+                actividad: (r.DESTINO || '—').trim(),
+                rubro:     (r.USO || 'General').trim(),
+                val, status
+            } : null;
+        })
+        .filter(Boolean);
+}
+
+function chatMapBtn(actividad) {
+    const enc = actividad.replace(/"/g, '&quot;');
+    return `<button class="chat-map-btn" onclick="chatHighlightZonesForUso(this.dataset.act)" data-act="${enc}">🗺️ Ver en mapa dónde está permitido</button>`;
+}
+
+function chatMapBtnSm(actividad) {
+    const enc = actividad.replace(/"/g, '&quot;');
+    return `<button class="chat-map-btn-sm" onclick="chatHighlightZonesForUso(this.dataset.act)" data-act="${enc}">🗺️</button>`;
+}
+
+function chatShowUsosLookup(results, query) {
+    const code = chatContext.codigo;
+    if (results.length === 1) {
+        const r = results[0];
+        const rubroCtx = `<span style="font-size:9px;color:var(--text-3);"> (${r.rubro})</span>`;
+        const msgs = {
+            permitido:   `✅ <strong>SÍ</strong> — <em>${r.actividad}</em>${rubroCtx} está <strong style="color:#34d399;">PERMITIDO</strong> en la zona <strong style="color:var(--gold);">${code}</strong>.`,
+            prohibido:   `🚫 <strong>NO</strong> — <em>${r.actividad}</em>${rubroCtx} está <strong style="color:#f87171;">PROHIBIDO</strong> en la zona <strong style="color:var(--gold);">${code}</strong>.`,
+            condicional: `⚡ <strong>SUJETO A CONDICIÓN</strong> — <em>${r.actividad}</em>${rubroCtx} puede ser viable en <strong style="color:var(--gold);">${code}</strong>, requiere evaluación según <strong style="color:#fbbf24;">Art. ${r.val}</strong> de la Ord. 14517/2023.`,
+        };
+        addBotMsg(msgs[r.status] + CHAT_NOTE + chatMapBtn(r.actividad));
+    } else {
+        let html = `Encontré <strong>${results.length}</strong> coincidencias para "<strong>${query}</strong>" en <strong style="color:var(--gold);">${code}</strong>:<br><br>`;
+        results.forEach(r => {
+            const cfg = {
+                permitido:   { icon: '✅', color: '#34d399', label: 'Permitido' },
+                prohibido:   { icon: '🚫', color: '#f87171', label: 'Prohibido' },
+                condicional: { icon: '⚡', color: '#fbbf24', label: `Art.${r.val}` },
+            }[r.status];
+            html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid rgba(148,163,184,0.1);gap:8px;">
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:11px;color:var(--text-1);">${cfg.icon} ${r.actividad}</div>
+                    <div style="font-size:9px;color:var(--text-3);">${r.rubro}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
+                    <span style="font-size:10px;font-weight:800;color:${cfg.color};">${cfg.label}</span>
+                    ${chatMapBtnSm(r.actividad)}
+                </div>
+            </div>`;
+        });
+        html += CHAT_NOTE;
+        addBotMsg(html);
+    }
+}
+
+function chatHandleInput() {
+    const inp = document.getElementById('chat-input');
+    const text = inp.value.trim();
+    if (!text) return;
+    inp.value = '';
+    addUserMsg(text);
+    const t = chatNorm(text);
+
+    if (!chatContext) {
+        addBotMsg('Primero seleccioná una zona en el mapa haciendo clic sobre ella.');
+        return;
+    }
+
+    if (/^(hola|buenas|buenos|saludos|buen dia|buen tarde)/.test(t)) {
+        addBotMsg(`¡Hola! Estoy consultando sobre <strong style="color:var(--gold);">${chatContext.codigo}</strong>. ¿En qué te ayudo?`);
+    } else if (/\busos permitidos\b|^permitidos?$|lista.*permit|cuales.*permit/.test(t)) {
+        chatRespond('permitidos');
+    } else if (/\busos prohibidos\b|^prohibidos?$|lista.*prohib|cuales.*prohib/.test(t)) {
+        chatRespond('prohibidos');
+    } else if (/\busos condicion|^condicionales?$|lista.*condic|cuales.*condic/.test(t)) {
+        chatRespond('condicionales');
+    } else if (/fos|fot|indicador|morfolog|altura|retiro|lote|lado min|superficie min/.test(t)) {
+        chatRespond('indicadores');
+    } else if (/que zona|cual.*zona|codigo.*zona|zona activa/.test(t)) {
+        addBotMsg(`La zona activa es <strong style="color:var(--gold);">${chatContext.codigo}</strong> — ${chatContext.zona_ || 'sin denominación'}.<br>Ordenanza: ${chatContext.ordenanza || '14517/2023'}.`);
+    } else if (/parcela|padron|catastro/.test(t)) {
+        addBotMsg('Para buscar una parcela específica usá el buscador del panel izquierdo ingresando el número de padrón.');
+    } else if (/ayuda|help|comandos|que puedo/.test(t)) {
+        addBotMsg('Podés preguntarme sobre:<br>• <strong>Usos permitidos / prohibidos / condicionales</strong><br>• <strong>Indicadores morfológicos</strong> (FOS, altura, retiros)<br>• <strong>Cualquier actividad</strong> — escribí el nombre y te digo si está permitida en esta zona.<br><br>Ej: <em>taller mecánico</em>, <em>vivienda multifamiliar</em>, <em>hotel</em>…');
+    } else {
+        // Búsqueda de uso por nombre (motor principal)
+        if (csvData?.length) {
+            const results = chatLookupUso(text);
+            if (results.length) { chatShowUsosLookup(results, text); return; }
+        }
+        addBotMsg(`No encontré ninguna actividad que coincida con "<strong>${text}</strong>" en la matriz de usos de la zona <strong style="color:var(--gold);">${chatContext.codigo}</strong>.<br><span style="font-size:10px;color:var(--text-3);">Intentá con términos más cortos o generales. Ej: "comercio", "taller", "depósito".</span>`);
+    }
+}
+
+document.getElementById('chat-fab').addEventListener('click', () => {
+    const panel = document.getElementById('chat-panel');
+    const opening = !panel.classList.contains('open');
+    panel.classList.toggle('open');
+    if (opening && document.getElementById('chat-messages').children.length === 0) {
+        if (chatContext) {
+            addBotMsg(`📍 Zona activa: <strong style="color:var(--gold);">${chatContext.codigo}</strong>. ¿Qué necesitás saber?`);
+            renderChatChips(true);
+        } else {
+            addBotMsg('👋 Hola! Soy el asistente del <strong>S.I.O.T.</strong><br>Hacé clic sobre una <strong>zona</strong> o <strong>parcela</strong> en el mapa y te digo qué usos están permitidos, prohibidos o condicionados.<br><br>También podés escribir directamente el nombre de una actividad: <em>vivienda, taller, hotel…</em>');
+            renderChatChips(false);
+        }
+    }
+});
+document.getElementById('chat-close').addEventListener('click', () => {
+    document.getElementById('chat-panel').classList.remove('open');
+});
+document.getElementById('chat-reset').addEventListener('click', () => {
+    document.getElementById('chat-messages').innerHTML = '';
+    if (chatContext) {
+        addBotMsg(`🔄 Conversación reiniciada.<br>Zona activa: <strong style="color:var(--gold);">${chatContext.codigo}</strong> — ${chatContext.zona_ || ''}.<br>Escribí el nombre de una actividad o usá los botones.`);
+        renderChatChips(true);
+    } else {
+        addBotMsg('🔄 Conversación reiniciada. Seleccioná una zona en el mapa para comenzar.');
+        renderChatChips(false);
+    }
+});
+document.getElementById('chat-send').addEventListener('click', () => { chatAcHide(); chatHandleInput(); });
+
+// ── AUTOCOMPLETE ──────────────────────────────────────────────────────────────
+let acIdx = -1;
+
+function chatAcHighlight(text, words) {
+    let result = text;
+    words.forEach(w => {
+        try {
+            const re = new RegExp(`(${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            result = result.replace(re, '<strong>$1</strong>');
+        } catch {}
+    });
+    return result;
+}
+
+function chatAcShow(query) {
+    if (!query || query.length < 2 || !csvData?.length) { chatAcHide(); return; }
+    const words = chatNorm(query).split(/\s+/).filter(Boolean);
+    const col = chatContext ? chatFindCol(chatContext.codigo) : null;
+    const seen = new Set();
+    const items = [];
+    for (const r of csvData) {
+        const uso = (r.DESTINO || '').trim();       // actividad específica
+        const rubro = (r.USO || '').trim();          // categoría/rubro
+        if (!uso || seen.has(uso)) continue;
+        const haystack = chatNorm(uso + ' ' + rubro);
+        if (!words.every(w => haystack.includes(w))) continue;
+        seen.add(uso);
+        let status = null, artVal = '';
+        if (col) {
+            const v = String(r[col] ?? '').trim();
+            if (v === '1') status = 'perm';
+            else if (v === '3') status = 'proh';
+            else if (v && /^\d+$/.test(v)) { status = 'cond'; artVal = v; }
+            else status = 'nd';
+        }
+        items.push({ uso, destino: rubro, status, artVal }); // destino = rubro para mostrar contexto
+        if (items.length >= 12) break;
+    }
+    const ac = document.getElementById('chat-autocomplete');
+    if (!items.length) { chatAcHide(); return; }
+    const badges = {
+        perm: ['✅ Sí', 'perm'],
+        proh: ['🚫 No', 'proh'],
+        cond: ['⚡ Cond.', 'cond'],
+        nd:   ['—', 'nd'],
+        null: ['', 'nd'],
+    };
+    ac.innerHTML = items.map((it, i) => {
+        const [blabel, bcls] = badges[it.status] || badges['nd'];
+        const badgeHtml = blabel ? `<span class="chat-ac-badge ${bcls}">${blabel}${it.artVal ? ` Art.${it.artVal}` : ''}</span>` : '';
+        return `<div class="chat-ac-item" data-uso="${it.uso.replace(/"/g, '&quot;')}" data-i="${i}">
+            <div style="min-width:0;flex:1;">
+                <div class="chat-ac-uso">${chatAcHighlight(it.uso, words)}</div>
+                ${it.destino ? `<div class="chat-ac-dest">${it.destino}</div>` : ''}
+            </div>
+            ${badgeHtml}
+        </div>`;
+    }).join('');
+    ac.style.display = 'block';
+    acIdx = -1;
+    ac.querySelectorAll('.chat-ac-item').forEach(el => {
+        el.addEventListener('mousedown', ev => {   // mousedown para que no pierda el focus del input
+            ev.preventDefault();
+            document.getElementById('chat-input').value = el.dataset.uso;
+            chatAcHide();
+            chatHandleInput();
+        });
+    });
+}
+
+function chatAcHide() {
+    const ac = document.getElementById('chat-autocomplete');
+    ac.style.display = 'none';
+    ac.innerHTML = '';
+    acIdx = -1;
+}
+
+document.getElementById('chat-input').addEventListener('input', () => {
+    chatAcShow(document.getElementById('chat-input').value.trim());
+});
+
+document.getElementById('chat-input').addEventListener('keydown', e => {
+    const ac = document.getElementById('chat-autocomplete');
+    const items = ac.querySelectorAll('.chat-ac-item');
+    if (ac.style.display === 'block' && items.length) {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            acIdx = Math.min(acIdx + 1, items.length - 1);
+            items.forEach((el, i) => el.classList.toggle('ac-sel', i === acIdx));
+            if (items[acIdx]) document.getElementById('chat-input').value = items[acIdx].dataset.uso;
+            return;
+        }
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            acIdx = Math.max(acIdx - 1, -1);
+            items.forEach((el, i) => el.classList.toggle('ac-sel', i === acIdx));
+            if (acIdx >= 0 && items[acIdx]) document.getElementById('chat-input').value = items[acIdx].dataset.uso;
+            return;
+        }
+        if (e.key === 'Escape') { chatAcHide(); return; }
+        if (e.key === 'Enter') {
+            if (acIdx >= 0 && items[acIdx]) {
+                document.getElementById('chat-input').value = items[acIdx].dataset.uso;
+                chatAcHide(); chatHandleInput(); e.preventDefault(); return;
+            }
+            chatAcHide(); chatHandleInput(); return;
+        }
+    } else if (e.key === 'Enter') {
+        chatAcHide(); chatHandleInput();
+    }
+});
+
+document.addEventListener('click', e => {
+    if (!document.getElementById('chat-panel').contains(e.target)) chatAcHide();
+});
+
+// ── SIDEBAR TOGGLE ────────────────────────────────────────────────────────────
+document.getElementById('btn-sidebar').addEventListener('click', () => {
+    const sidebar = document.getElementById('sidebar');
+    const btn     = document.getElementById('btn-sidebar');
+    sidebar.classList.toggle('collapsed');
+    btn.classList.toggle('active', sidebar.classList.contains('collapsed'));
+    setTimeout(() => map.invalidateSize(), 290);
+});
+</script>
 </body>
 </html>
