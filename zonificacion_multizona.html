@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Municipalidad de Luján de Cuyo - SIOT + Catastro</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <link class="sub-step" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
+    <style>
+        :root { 
+            --mun-amarillo: #ffbf00; 
+            --bg-main: #020617;
+            --bg-sidebar: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #020617;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #1e293b;
+        }
+        
+        .light-theme {
+            --bg-main: #f1f5f9;
+            --bg-sidebar: #ffffff;
+            --bg-card: #f8fafc;
+            --bg-input: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+        }
+
+        body { background-color: var(--bg-main); color: var(--text-main); transition: background-color 0.3s, color 0.3s; }
+        aside { background-color: var(--bg-sidebar); border-color: var(--border-color); }
+        .theme-card { background-color: var(--bg-card); border-color: var(--border-color); }
+        .theme-input { background-color: var(--bg-input); border-color: var(--border-color); color: var(--text-main); }
+        .theme-text-muted { color: var(--text-muted); }
+
+        #map { height: calc(100vh - 80px); width: 100%; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: var(--mun-amarillo); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background-color: var(--bg-main); }
+        .leaflet-grab { cursor: crosshair !important; }
+    </style>
+</head>
+<body class="font-sans antialiased overflow-hidden">
+
+    <header class="bg-[#ffbf00] h-20 flex items-center justify-between px-6 z-10 relative shadow-xl border-b-4 border-slate-900">
+        <div class="flex items-center space-x-5">
+            <div class="bg-slate-950 p-1.5 rounded-xl shadow-inner border border-slate-800 flex items-center justify-center h-16 w-32">
+                <img src="logo_lujan.png" alt="Municipio Luján de Cuyo" class="h-14 w-auto object-contain">
+            </div>
+            <div>
+                <h1 class="text-xl font-black tracking-tight text-slate-950 uppercase leading-none">Luján de Cuyo</h1>
+                <p class="text-xs text-slate-900 font-bold tracking-wide mt-1">S.I.O.T. — Visor Catastral y Ordenamiento Territorial</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center space-x-3">
+            <button id="theme-toggle" class="bg-slate-950 text-[#ffbf00] hover:bg-slate-900 hover:text-white px-3 py-2 rounded-lg text-xs font-black tracking-wider uppercase border border-slate-800 shadow-sm cursor-pointer transition flex items-center space-x-1.5">
+                <i id="theme-icon" class="fa-solid fa-sun text-amber-400"></i>
+                <span id="theme-text">Modo Claro</span>
+            </button>
+
+            <a href="ordenanza_14517.pdf" download="ORDENANZA_N_14517-2023_Lujan_de_Cuyo.pdf" 
+               class="bg-slate-950 text-[#ffbf00] hover:text-white hover:bg-slate-900 transition px-4 py-2 rounded-lg text-xs font-black tracking-wider uppercase border border-slate-800 shadow-sm flex items-center space-x-2">
+                <i class="fa-solid fa-file-pdf text-rose-500 text-sm"></i>
+                <span>Descargar Ordenanza 14517/2023</span>
+            </a>
+        </div>
+    </header>
+
+    <div class="flex h-[calc(100vh-80px)] w-full">
+        <aside class="w-96 border-r flex flex-col z-10 shadow-2xl overflow-hidden transition-colors duration-300">
+            
+            <div id="kpi-panel" class="px-4 py-4 grid grid-cols-2 gap-3 border-b border-slate-700/30 bg-black/5 hidden">
+                <div class="theme-card p-2.5 rounded-xl border shadow-md">
+                    <span class="text-[10px] text-[#ffbf00] block font-black uppercase tracking-wider">Polígonos Regulados</span>
+                    <span id="kpi-count" class="text-xl font-black">-</span>
+                </div>
+                <div class="theme-card p-2.5 rounded-xl border shadow-md">
+                    <span class="text-[10px] text-[#ffbf00] block font-black uppercase tracking-wider">Superficie Total</span>
+                    <span id="kpi-area" class="text-sm font-black mt-1 block">- ha</span>
+                </div>
+            </div>
+
+            <div id="map-legend" class="px-4 py-3.5 border-b border-slate-700/30 bg-black/5 space-y-2.5">
+                <label class="block text-[10px] font-black uppercase tracking-widest text-[#ffbf00]"><i class="fa-solid fa-palette mr-1"></i> Referencias de Zonificación</label>
+                <div id="map-legend-items" class="grid grid-cols-2 gap-x-3 gap-y-2.5"></div>
+            </div>
+
+            <div class="p-3 border-b border-slate-700/30 flex items-center gap-2">
+                <div class="relative flex-1">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-[#ffbf00]">
+                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                    </span>
+                    <input id="search-global" type="text" placeholder="Buscar por Padrón (N°) o Zona (ej: ZCM1)..." 
+                           class="theme-input w-full border rounded-lg pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-[#ffbf00]" disabled/>
+                </div>
+                <button id="btn-clear-filters" title="Restablecer vista completa" 
+                        class="bg-slate-950 text-[#ffbf00] hover:bg-slate-900 hover:text-white border border-slate-800 p-2 rounded-lg text-xs transition cursor-pointer flex items-center justify-center h-[34px] w-[38px]">
+                    <i class="fa-solid fa-arrow-rotate-left"></i>
+                </button>
+            </div>
+
+            <div class="flex border-b border-slate-700/30 text-xs bg-black/10">
+                <button id="btn-tab-morfologia" class="flex-1 py-3 text-center font-black border-b-2 border-[#ffbf00] text-[#ffbf00] focus:outline-none transition uppercase tracking-wider cursor-pointer">
+                    <i class="fa-solid fa-compass-drafting mr-1"></i> Morfología / Catastro
+                </button>
+                <button id="btn-tab-usos" class="flex-1 py-3 text-center font-black border-b-2 border-transparent theme-text-muted hover:text-[#ffbf00] focus:outline-none transition uppercase tracking-wider cursor-pointer">
+                    <i class="fa-solid fa-sheet-plastic mr-1"></i> Usos del Suelo
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-4 relative bg-black/5">
+                <div id="inspector-placeholder" class="theme-text-muted text-xs italic text-center py-16 px-4">
+                    <i class="fa-solid fa-hand-pointer block text-3xl text-slate-400 opacity-40 mb-3 animate-pulse"></i>
+                    Seleccioná una parcela o zona del mapa para cruzar indicadores morfológicos y usos permitidos.
+                </div>
+                
+                <div id="panel-morfologia" class="hidden space-y-4">
+                    
+                    <div id="ficha-catastral" class="theme-card rounded-xl border-t-4 border-t-sky-500 border-x border-b p-3 shadow-md hidden bg-sky-500/5">
+                        <h5 class="text-[10px] uppercase font-black text-sky-500 tracking-widest mb-1.5"><i class="fa-solid fa-map-location-dot mr-1"></i> Datos Catastrales Cruzados</h5>
+                        <div class="grid grid-cols-2 gap-2 text-[11px]">
+                            <div><span class="theme-text-muted block text-[9px] uppercase">Padrón Municipal:</span> <strong id="cat-padron" class="text-sky-400 font-mono">-</strong></div>
+                            <div><span class="theme-text-muted block text-[9px] uppercase">Nomenclatura:</span> <strong id="cat-nomen" class="text-sky-400 font-mono text-[10px]">-</strong></div>
+                        </div>
+                    </div>
+
+                    <div id="multizona-alert" class="hidden theme-card rounded-xl border-t-4 border-t-orange-500 border-x border-b p-3 shadow-md bg-orange-500/5 mb-3">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="fa-solid fa-layer-group text-orange-400 text-sm"></i>
+                            <span class="text-[10px] font-black text-orange-400 uppercase tracking-widest">Parcela Multizona</span>
+                            <span id="multizona-count" class="bg-orange-500/20 text-orange-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-orange-500/40">-</span>
+                        </div>
+                        <div id="multizona-pills" class="flex flex-wrap gap-1.5 mb-2"></div>
+                        <div class="w-full h-2 rounded-full overflow-hidden flex" id="multizona-bar" title="Distribución de zonas por área"></div>
+                        <p class="text-[9px] theme-text-muted mt-1.5 italic">Seleccioná una zona para ver sus parámetros normativos.</p>
+                    </div>
+
+                    <div class="theme-card rounded-xl border-t-4 border-t-[#ffbf00] border-x border-b p-4 shadow-xl">
+                        <div class="flex justify-between items-start mb-3 border-b border-slate-700/30 pb-2.5">
+                            <div>
+                                <h4 id="insp-codigo" class="text-2xl font-black text-[#ffbf00] tracking-wide">-</h4>
+                                <p id="insp-nombre" class="text-[10px] font-bold uppercase mt-0.5 tracking-wide leading-tight">-</p>
+                            </div>
+                            <span class="text-[9px] theme-input border px-2 py-0.5 rounded-md font-mono uppercase font-bold">Normativa</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2.5 mb-4">
+                            <div class="p-2.5 theme-input border rounded-xl flex flex-col justify-between shadow-sm bg-black/5">
+                                <span class="theme-text-muted block text-[9px] uppercase font-bold tracking-wider"><i class="fa-solid fa-chart-pie text-[#ffbf00] mr-1"></i> F.O.S Máximo</span>
+                                <span id="insp-fos" class="text-lg font-black mt-1 text-slate-900 dark:text-white">-</span>
+                            </div>
+                            <div class="p-2.5 theme-input border rounded-xl flex flex-col justify-between shadow-sm bg-black/5">
+                                <span class="theme-text-muted block text-[9px] uppercase font-bold tracking-wider"><i class="fa-solid fa-arrows-up-down text-[#ffbf00] mr-1"></i> Altura Máx.</span>
+                                <span id="insp-altura" class="text-lg font-black mt-1 text-slate-900 dark:text-white">-</span>
+                            </div>
+                            <div class="p-2.5 theme-input border rounded-xl flex flex-col justify-between shadow-sm bg-black/5">
+                                <span class="theme-text-muted block text-[9px] uppercase font-bold tracking-wider"><i class="fa-solid fa-vector-square text-[#ffbf00] mr-1"></i> Lote Mínimo</span>
+                                <span id="insp-lote" class="text-lg font-black mt-1 text-slate-900 dark:text-white">-</span>
+                            </div>
+                            <div class="p-2.5 theme-input border rounded-xl flex flex-col justify-between shadow-sm bg-black/5">
+                                <span class="theme-text-muted block text-[9px] uppercase font-bold tracking-wider"><i class="fa-solid fa-ruler-horizontal text-[#ffbf00] mr-1"></i> Frente Mín.</span>
+                                <span id="insp-lado" class="text-lg font-black mt-1 text-slate-900 dark:text-white">-</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2 mb-4">
+                            <div class="p-2 theme-card rounded border border-emerald-500/30 bg-emerald-500/5">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Permitidos</span>
+                                    <span id="pct-permitidos" class="text-xs font-black text-emerald-600 dark:text-emerald-400">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-200 dark:bg-slate-700 h-1 rounded-full overflow-hidden mb-2">
+                                    <div id="bar-permitidos" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+                                </div>
+                                <div class="text-[10px] theme-text-muted"><span id="morf-count-permitidos" class="font-bold">0</span> rubros</div>
+                            </div>
+
+                            <div class="p-2 theme-card rounded border border-amber-500/30 bg-amber-500/5">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Condic.</span>
+                                    <span id="pct-condicionados" class="text-xs font-black text-amber-600 dark:text-amber-400">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-200 dark:bg-slate-700 h-1 rounded-full overflow-hidden mb-2">
+                                    <div id="bar-condicionados" class="bg-amber-500 h-full transition-all duration-500" style="width: 0%"></div>
+                                </div>
+                                <div class="text-[10px] theme-text-muted"><span id="morf-count-condicionados" class="font-bold">0</span> rubros</div>
+                            </div>
+
+                            <div class="p-2 theme-card rounded border border-rose-500/30 bg-rose-500/5">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Prohibidos</span>
+                                    <span id="pct-prohibidos" class="text-xs font-black text-rose-600 dark:text-rose-400">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-200 dark:bg-slate-700 h-1 rounded-full overflow-hidden mb-2">
+                                    <div id="bar-prohibidos" class="bg-rose-500 h-full transition-all duration-500" style="width: 0%"></div>
+                                </div>
+                                <div class="text-[10px] theme-text-muted"><span id="morf-count-prohibidos" class="font-bold">0</span> rubros</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-t border-slate-700/30">
+                            <h5 class="text-[9px] uppercase font-black text-[#ffbf00] tracking-widest mb-2"><i class="fa-solid fa-compress mr-1.5"></i>Retiros Obligatorios</h5>
+                            <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
+                                <div class="theme-input border p-2 rounded-lg">
+                                    <span class="theme-text-muted block text-[9px] uppercase font-medium">Frontal</span>
+                                    <span id="insp-rf" class="font-black text-slate-900 dark:text-white">-</span>
+                                </div>
+                                <div class="theme-input border p-2 rounded-lg">
+                                    <span class="theme-text-muted block text-[9px] uppercase font-medium">Lateral</span>
+                                    <span id="insp-rl" class="font-black text-slate-900 dark:text-white">-</span>
+                                </div>
+                                <div class="theme-input border p-2 rounded-lg">
+                                    <span class="theme-text-muted block text-[9px] uppercase font-medium">Posterior</span>
+                                    <span id="insp-rp" class="font-black text-slate-900 dark:text-white">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="panel-usos" class="hidden space-y-3">
+                    <div class="relative mb-2 shadow-sm">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-[#ffbf00]">
+                            <i class="fa-solid fa-filter text-xs"></i>
+                        </span>
+                        <input id="search-activity" type="text" placeholder="Filtrar actividades (ej: vivienda)..." 
+                               class="theme-input w-full border rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[#ffbf00]" />
+                    </div>
+
+                    <div class="text-[10px] theme-input border p-2.5 rounded-lg mb-2 flex items-center justify-between">
+                        <span>Zona Reguladora Activa: <strong id="usos-zona-titulo" class="text-[#ffbf00] font-mono font-bold">-</strong></span>
+                    </div>
+
+                    <div class="border border-emerald-600/30 rounded-lg overflow-hidden">
+                        <button onclick="toggleAccordion('list-permitidos')" class="w-full bg-emerald-500/10 hover:bg-emerald-500/20 px-3 py-2.5 flex justify-between items-center border-b border-emerald-600/20 text-emerald-600 font-black text-xs transition cursor-pointer">
+                            <span><i class="fa-solid fa-square-check mr-1.5 text-emerald-500"></i> PERMITIDOS / DOMINANTES</span>
+                            <span id="btn-count-permitidos" class="bg-emerald-500/20 text-emerald-600 border border-emerald-500/40 text-[10px] px-2 py-0.5 font-bold rounded-full">0</span>
+                        </button>
+                        <div id="list-permitidos" class="max-h-96 overflow-y-auto p-2 space-y-1.5 text-[11px] custom-scrollbar hidden bg-black/5"></div>
+                    </div>
+
+                    <div class="border border-amber-600/30 rounded-lg overflow-hidden">
+                        <button onclick="toggleAccordion('list-condicionados')" class="w-full bg-amber-500/10 hover:bg-amber-500/20 px-3 py-2.5 flex justify-between items-center border-b border-amber-600/20 text-amber-600 font-black text-xs transition cursor-pointer">
+                            <span><i class="fa-solid fa-triangle-exclamation mr-1.5 text-amber-500"></i> SUJETOS A CONDICIÓN</span>
+                            <span id="btn-count-condicionados" class="bg-amber-500/20 text-amber-600 border border-amber-500/40 text-[10px] px-2 py-0.5 font-bold rounded-full">0</span>
+                        </button>
+                        <div id="list-condicionados" class="max-h-96 overflow-y-auto p-2 space-y-1.5 text-[11px] custom-scrollbar hidden bg-black/5"></div>
+                    </div>
+
+                    <div class="border border-rose-600/30 rounded-lg overflow-hidden">
+                        <button onclick="toggleAccordion('list-prohibidos')" class="w-full bg-rose-500/10 hover:bg-rose-500/20 px-3 py-2.5 flex justify-between items-center border-b border-rose-600/20 text-rose-600 font-black text-xs transition cursor-pointer">
+                            <span><i class="fa-solid fa-square-xmark mr-1.5 text-rose-500"></i> PROHIBIDOS EXPLÍCITOS</span>
+                            <span id="btn-count-prohibidos" class="bg-rose-500/20 text-rose-600 border border-rose-500/40 text-[10px] px-2 py-0.5 font-bold rounded-full">0</span>
+                        </button>
+                        <div id="list-prohibidos" class="max-h-96 overflow-y-auto p-2 space-y-1.5 text-[11px] custom-scrollbar hidden bg-black/5"></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 relative">
+            <div id="map"></div>
+        </main>
+    </div>
+
+    <script>
+        const map = L.map('map', { zoomControl: false, minZoom: 10 }).setView([-33.05, -68.90], 11);
+        L.control.zoom({ position: 'topright' }).addTo(map);
+
+        const baseLayers = {
+            "Mapa Oscuro": L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }),
+            "Mapa Claro": L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' })
+        };
+        baseLayers["Mapa Oscuro"].addTo(map);
+
+        let geojsonLayer = null, originalGeoData = null, csvData = null, selectedZoneCode = null;
+        let highlightedParcelLayer = null;
+        let currentZonesData = [];
+        let activeZoneIndex = 0;
+
+        const GEOJSON_FILE = 'zonificacion_14517.geojson';
+        const CSV_FILE = 'matriz_usos.csv';
+        
+        const GEOSERVER_WMS_URL = 'https://visorgis.lujandecuyo.gob.ar/geoserver/geonode/wms';
+        const GEOSERVER_WFS_URL = 'https://visorgis.lujandecuyo.gob.ar/geoserver/geonode/ows';
+        const PARCEL_LAYER_NAME = 'geonode:parcelario_catastral_new';
+
+        const legendConfig = [
+            { label: 'Centralidad / Mixto', prefixes: ['ZC', 'ZCM'], color: '#ef4444' },
+            { label: 'Residencial (ZR)', prefixes: ['ZR1', 'ZR2', 'ZR3', 'ZR4', 'ZR5'], color: '#f59e0b' },
+            { label: 'Residencial Mixto', prefixes: ['ZRM'], color: '#ec4899' },
+            { label: 'Industrial / Act.', prefixes: ['ZI', 'ZIP', 'ZIA', 'ZIN'], color: '#8b5cf6' },
+            { label: 'Rural / Agrícola', prefixes: ['ZRUR', 'ZAGT', 'ZVIT'], color: '#10b981' },
+            { label: 'Amortiguación / Esp.', prefixes: ['ZAE', 'ZRA', 'ZCON', 'ZAI', 'ZCA'], color: '#059669' },
+            { label: 'Recreativo / Verde', prefixes: ['ZREC', 'ZREC1', 'ZREC2'], color: '#06b6d4' },
+            { label: 'Otros / Servicios', prefixes: ['ZSER', 'ZED', 'ZEPM', 'ZPET', 'ZPRIL'], color: '#64748b' }
+        ];
+
+        const parcelWMS = L.tileLayer.wms(GEOSERVER_WMS_URL, {
+            layers: PARCEL_LAYER_NAME,
+            format: 'image/png',
+            transparent: true,
+            version: '1.1.1',
+            attribution: "Catastro Municipal Luján de Cuyo",
+            opacity: 0.9
+        }).addTo(map);
+
+        const overlayLayers = {
+            "📐 Parcelario Catastral (WMS)": parcelWMS
+        };
+        const layerControl = L.control.layers(baseLayers, overlayLayers, { collapsed: false, position: 'topright' }).addTo(map);
+
+        let isDarkMode = true;
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const themeText = document.getElementById('theme-text');
+
+        themeToggleBtn.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            if (isDarkMode) {
+                document.body.classList.remove('light-theme');
+                themeIcon.className = "fa-solid fa-sun text-amber-400"; themeText.innerText = "Modo Claro";
+                map.removeLayer(baseLayers["Mapa Claro"]); baseLayers["Mapa Oscuro"].addTo(map);
+                
+                // Opacidad optimizada para fondo oscuro
+                if (geojsonLayer) geojsonLayer.setStyle({ fillOpacity: 0.45, weight: 1.2 });
+            } else {
+                document.body.classList.add('light-theme');
+                themeIcon.className = "fa-solid fa-moon text-indigo-600"; themeText.innerText = "Modo Oscuro";
+                map.removeLayer(baseLayers["Mapa Oscuro"]); baseLayers["Mapa Claro"].addTo(map);
+                
+                // MODO CLARO CRÍTICO: Bajamos opacidad del GeoJSON a 0.18 para dar prioridad visual absoluta al WMS catastral
+                if (geojsonLayer) geojsonLayer.setStyle({ fillOpacity: 0.18, weight: 0.8 });
+            }
+            if (selectedZoneCode) processLandUses(selectedZoneCode, document.getElementById('search-activity').value);
+            if (map.hasLayer(parcelWMS)) { parcelWMS.bringToFront(); }
+        });
+
+        const btnMorf = document.getElementById('btn-tab-morfologia');
+        const btnUsos = document.getElementById('btn-tab-usos');
+        const panelMorf = document.getElementById('panel-morfologia');
+        const panelUsos = document.getElementById('panel-usos');
+
+        btnMorf.addEventListener('click', () => {
+            btnMorf.className = "flex-1 py-3 text-center font-black border-b-2 border-[#ffbf00] text-[#ffbf00] uppercase tracking-wider cursor-pointer";
+            btnUsos.className = "flex-1 py-3 text-center font-black border-b-2 border-transparent theme-text-muted hover:text-[#ffbf00] uppercase tracking-wider cursor-pointer";
+            panelMorf.classList.remove('hidden'); panelUsos.classList.add('hidden');
+        });
+
+        btnUsos.addEventListener('click', () => {
+            btnUsos.className = "flex-1 py-3 text-center font-black border-b-2 border-[#ffbf00] text-[#ffbf00] uppercase tracking-wider cursor-pointer";
+            btnMorf.className = "flex-1 py-3 text-center font-black border-b-2 border-transparent theme-text-muted hover:text-[#ffbf00] uppercase tracking-wider cursor-pointer";
+            panelUsos.classList.remove('hidden'); panelMorf.classList.add('hidden');
+        });
+
+        function toggleAccordion(id) { document.getElementById(id).classList.toggle('hidden'); }
+        
+        function getZoneColor(code) {
+            if (!code) return '#64748b';
+            const c = code.toUpperCase().trim();
+            for (const item of legendConfig) {
+                for (const p of item.prefixes) { if (c.startsWith(p)) return item.color; }
+            }
+            return '#64748b';
+        }
+
+        function populateLegend() {
+            const container = document.getElementById('map-legend-items'); container.innerHTML = '';
+            legendConfig.forEach(item => {
+                const el = `<div class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-sm border border-slate-700/40 shadow-inner" style="background-color: ${item.color}; fill-opacity: 0.55;"></span><span class="theme-text-muted text-[10px] font-bold leading-tight">${item.label}</span></div>`;
+                container.insertAdjacentHTML('beforeend', el);
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            populateLegend();
+            fetch(GEOJSON_FILE).then(r => r.json()).then(data => handleGeoJSONSuccess(data)).catch(e => console.error("Error GeoJSON"));
+            fetch(CSV_FILE).then(r => r.text()).then(txt => { Papa.parse(txt, { header: true, skipEmptyLines: true, complete: r => csvData = r.data }); });
+        });
+
+        function handleGeoJSONSuccess(data) {
+            originalGeoData = data; 
+            renderGeoJSON(data); 
+            buildStatistics(data);
+            document.getElementById('search-global').disabled = false;
+            document.getElementById('kpi-panel').classList.remove('hidden');
+            if (geojsonLayer) { const b = geojsonLayer.getBounds(); if (b.isValid()) map.fitBounds(b, { padding: [30, 30] }); }
+        }
+
+        function renderGeoJSON(geojson) {
+            if (geojsonLayer) { 
+                layerControl.removeLayer(geojsonLayer);
+                map.removeLayer(geojsonLayer); 
+            }
+            
+            const currentOpacity = isDarkMode ? 0.45 : 0.18;
+            const currentWeight = isDarkMode ? 1.2 : 0.8;
+
+            geojsonLayer = L.geoJSON(geojson, {
+                style: (f) => ({ fillColor: getZoneColor(f.properties.codigo), weight: currentWeight, opacity: 0.7, color: '#1e293b', fillOpacity: currentOpacity }),
+                onEachFeature: function(feature, layer) {
+                    if (feature.properties && feature.properties.codigo) {
+                        layer.bindTooltip(`<strong>${feature.properties.codigo}</strong><br>${feature.properties.zona_ || ''}`, { sticky: true, className: 'bg-slate-900 text-slate-100 border text-xs p-2 shadow-2xl' });
+                    }
+                    layer.on('click', function(e) {
+                        if (!e.originalEvent || !e.originalEvent._parcelClicked) {
+                            document.getElementById('ficha-catastral').classList.add('hidden');
+                            selectedZoneCode = feature.properties.codigo;
+                            inspectFeature(feature.properties);
+                            highlightZoneLayer(layer);
+                        }
+                    });
+                }
+            }).addTo(map);
+
+            layerControl.addOverlay(geojsonLayer, "🗺️ Zonificación (Ord. 14517)");
+            parcelWMS.bringToFront();
+        }
+
+        function highlightZoneLayer(layer) {
+            geojsonLayer.eachLayer(l => geojsonLayer.resetStyle(l));
+            const activeOpacity = isDarkMode ? 0.6 : 0.35;
+            layer.setStyle({ weight: 3.5, color: '#ffbf00', fillOpacity: activeOpacity });
+            if (map.hasLayer(parcelWMS)) { parcelWMS.bringToFront(); }
+        }
+
+        function findZonesForParcel(parcelFeature) {
+            if (!originalGeoData) return [];
+            const results = [];
+            let parcelArea = 1;
+            try { parcelArea = turf.area(parcelFeature) || 1; } catch(e) {}
+
+            for (let zoneFeature of originalGeoData.features) {
+                try {
+                    if (!turf.booleanIntersects(parcelFeature, zoneFeature)) continue;
+                    let intersectionArea = 0, percentage = 0;
+                    try {
+                        const intersection = turf.intersect(
+                            turf.feature(parcelFeature.geometry || parcelFeature),
+                            turf.feature(zoneFeature.geometry)
+                        );
+                        if (intersection) {
+                            intersectionArea = turf.area(intersection);
+                            percentage = (intersectionArea / parcelArea) * 100;
+                        }
+                    } catch(e) {
+                        // Fallback: centroid check si intersect falla
+                        const centroid = turf.centroid(parcelFeature);
+                        if (turf.booleanPointInPolygon(centroid, zoneFeature)) {
+                            percentage = 100; intersectionArea = parcelArea;
+                        } else {
+                            percentage = 30; intersectionArea = parcelArea * 0.3;
+                        }
+                    }
+                    if (percentage >= 2) {
+                        results.push({
+                            props: zoneFeature.properties,
+                            area_m2: Math.round(intersectionArea),
+                            percentage: Math.round(percentage * 10) / 10
+                        });
+                    }
+                } catch(err) { continue; }
+            }
+            results.sort((a, b) => b.percentage - a.percentage);
+            return results;
+        }
+
+        function inspectFeature(zoneProps, parcelProps = null, zonesArray = []) {
+            document.getElementById('inspector-placeholder').className = 'hidden';
+            panelMorf.classList.remove('hidden');
+
+            if (parcelProps) {
+                document.getElementById('ficha-catastral').classList.remove('hidden');
+                document.getElementById('cat-padron').innerText = parcelProps.padronmuni || 'S/D';
+                document.getElementById('cat-nomen').innerText = parcelProps.nomen_20 || 'S/D';
+            } else {
+                document.getElementById('ficha-catastral').classList.add('hidden');
+            }
+
+            // ── Lógica multizona ──────────────────────────────
+            currentZonesData = zonesArray;
+            const multiAlert = document.getElementById('multizona-alert');
+
+            if (zonesArray.length > 1) {
+                multiAlert.classList.remove('hidden');
+                document.getElementById('multizona-count').innerText = zonesArray.length + ' zonas';
+
+                // Barra proporcional de colores
+                const bar = document.getElementById('multizona-bar');
+                bar.innerHTML = '';
+                zonesArray.forEach(zItem => {
+                    const seg = document.createElement('div');
+                    seg.style.width = zItem.percentage + '%';
+                    seg.style.backgroundColor = getZoneColor(zItem.props.codigo);
+                    seg.title = zItem.props.codigo + ' — ' + zItem.percentage + '%';
+                    bar.appendChild(seg);
+                });
+
+                // Pills de zona
+                const pillsContainer = document.getElementById('multizona-pills');
+                pillsContainer.innerHTML = '';
+                zonesArray.forEach((zItem, idx) => {
+                    const isActive = zItem.props.codigo === (zoneProps ? zoneProps.codigo : '');
+                    const color = getZoneColor(zItem.props.codigo);
+                    const pill = document.createElement('button');
+                    pill.className = 'multizona-pill px-2.5 py-1 rounded-lg text-[10px] font-black border transition cursor-pointer flex items-center gap-1.5' + (isActive ? ' ring-2 ring-white/40' : ' opacity-55 hover:opacity-90');
+                    pill.style.cssText = `background-color:${color}22; border-color:${color}; color:${color};`;
+                    pill.innerHTML = `<span style="width:8px;height:8px;border-radius:2px;background-color:${color};display:inline-block;"></span>${zItem.props.codigo} <span style="font-size:9px;opacity:0.75">${zItem.percentage}%</span>`;
+                    pill.addEventListener('click', () => {
+                        activeZoneIndex = idx;
+                        renderZoneParams(zItem.props);
+                        document.querySelectorAll('.multizona-pill').forEach((p, i) => {
+                            if (i === idx) { p.classList.add('ring-2', 'ring-white/40'); p.classList.remove('opacity-55'); }
+                            else { p.classList.remove('ring-2', 'ring-white/40'); p.classList.add('opacity-55'); }
+                        });
+                        selectedZoneCode = zItem.props.codigo;
+                        processLandUses(zItem.props.codigo, document.getElementById('search-activity').value);
+                    });
+                    pillsContainer.appendChild(pill);
+                });
+            } else {
+                multiAlert.classList.add('hidden');
+            }
+
+            renderZoneParams(zoneProps);
+        }
+
+        function renderZoneParams(zoneProps) {
+            if (zoneProps) {
+                document.getElementById('insp-codigo').innerText = zoneProps.codigo || 'S/D';
+                document.getElementById('insp-nombre').innerText = zoneProps.zona_ || 'ZONA SIN DENOMINACIÓN';
+                document.getElementById('insp-fos').innerHTML = `<span class="text-lg font-black text-slate-900 dark:text-white">${zoneProps.fos ? zoneProps.fos + '%' : 'S/D'}</span>`;
+                document.getElementById('insp-altura').innerHTML = `<span class="text-lg font-black text-slate-900 dark:text-white">${zoneProps.alt_max ? zoneProps.alt_max + ' m' : 'S/D'}</span>`;
+                document.getElementById('insp-lote').innerHTML = `<span class="text-lg font-black text-slate-900 dark:text-white">${zoneProps.lote_min ? Number(zoneProps.lote_min).toLocaleString('es-AR') + ' m²' : 'S/D'}</span>`;
+                if(document.getElementById('insp-lado')) {
+                    document.getElementById('insp-lado').innerHTML = `<span class="text-lg font-black text-slate-900 dark:text-white">${zoneProps.lado_min ? zoneProps.lado_min + ' m' : 'S/D'}</span>`;
+                }
+                document.getElementById('insp-rf').innerHTML = `<span class="font-black text-slate-900 dark:text-white">${zoneProps.retiro_fro ? zoneProps.retiro_fro + ' m' : '0 m'}</span>`;
+                document.getElementById('insp-rl').innerHTML = `<span class="font-black text-slate-900 dark:text-white">${zoneProps.retiro_lat ? zoneProps.retiro_lat + ' m' : '0 m'}</span>`;
+                document.getElementById('insp-rp').innerHTML = `<span class="font-black text-slate-900 dark:text-white">${zoneProps.retiro_pos ? zoneProps.retiro_pos + ' m' : '0 m'}</span>`;
+                selectedZoneCode = zoneProps.codigo;
+                processLandUses(zoneProps.codigo);
+            } else {
+                document.getElementById('insp-codigo').innerText = "FUERA DE MATRIZ";
+                document.getElementById('insp-nombre').innerText = "PARCELA FUERA DE LÍMITES URBANOS REGULADOS";
+                document.getElementById('insp-fos').innerHTML = `<span class="text-lg font-black text-slate-900 dark:text-white">90%</span>`;
+                document.getElementById('insp-altura').innerHTML = `<span class="text-lg font-black text-slate-900 dark:text-white">0 m</span>`;
+                document.getElementById('insp-lote').innerHTML = `<span class="text-lg font-black text-slate-900 dark:text-white">200 m²</span>`;
+                document.getElementById('insp-lado').innerHTML = `<span class="text-lg font-black text-slate-900 dark:text-white">10 m</span>`;
+                document.getElementById('insp-rf').innerHTML = `<span class="font-black text-slate-900 dark:text-white">0 m</span>`;
+                document.getElementById('insp-rl').innerHTML = `<span class="font-black text-slate-900 dark:text-white">0 m</span>`;
+                document.getElementById('insp-rp').innerHTML = `<span class="font-black text-slate-900 dark:text-white">0 m</span>`;
+                selectedZoneCode = null;
+                resetUsesDashboard();
+            }
+        }
+
+                function resetUsesDashboard() {
+            document.getElementById('usos-zona-titulo').innerText = "S/N";
+            document.getElementById('pct-permitidos').innerText = "0%";
+            document.getElementById('pct-condicionados').innerText = "0%";
+            document.getElementById('pct-prohibidos').innerText = "0%";
+            document.getElementById('bar-permitidos').style.width = "0%";
+            document.getElementById('bar-condicionados').style.width = "0%";
+            document.getElementById('bar-prohibidos').style.width = "0%";
+            document.getElementById('morf-count-permitidos').innerText = "0";
+            document.getElementById('morf-count-condicionados').innerText = "0";
+            document.getElementById('morf-count-prohibidos').innerText = "0";
+            document.getElementById('btn-count-permitidos').innerText = "0";
+            document.getElementById('btn-count-condicionados').innerText = "0";
+            document.getElementById('btn-count-prohibidos').innerText = "0";
+            document.getElementById('list-permitidos').innerHTML = "";
+            document.getElementById('list-condicionados').innerHTML = "";
+            document.getElementById('list-prohibidos').innerHTML = "";
+        }
+
+        map.on('click', function(e) {
+            const size = map.getSize();
+            const bbox = map.getBounds().toBBoxString();
+            const point = map.latLngToContainerPoint(e.latlng, map.getZoom());
+
+            const url = `${GEOSERVER_WMS_URL}?REQUEST=GetFeatureInfo&SERVICE=WMS&VERSION=1.1.1` +
+                        `&LAYERS=${PARCEL_LAYER_NAME}&QUERY_LAYERS=${PARCEL_LAYER_NAME}` +
+                        `&INFO_FORMAT=application/json&BBOX=${bbox}&FEATURE_COUNT=1` +
+                        `&HEIGHT=${size.y}&WIDTH=${size.x}&X=${Math.round(point.x)}&Y=${Math.round(point.y)}` +
+                        `&SRS=EPSG:4326`;
+
+            fetch(url)
+                .then(r => r.json())
+                .then(geojson => {
+                    if (geojson.features && geojson.features.length > 0) {
+                        const parcel = geojson.features[0];
+                        e.originalEvent._parcelClicked = true; 
+                        highlightParcel(parcel);
+                        const matchedZones = findZonesForParcel(parcel);
+                        inspectFeature(matchedZones.length > 0 ? matchedZones[0].props : null, parcel.properties, matchedZones);
+                    }
+                })
+                .catch(err => console.error("Error al recuperar datos espaciales:", err));
+        });
+
+        function highlightParcel(parcelFeature) {
+            if (highlightedParcelLayer) { map.removeLayer(highlightedParcelLayer); }
+            highlightedParcelLayer = L.geoJSON(parcelFeature, {
+                style: { color: '#0ea5e9', weight: 3.5, fillColor: '#0ea5e9', fillOpacity: 0.35 }
+            }).addTo(map);
+            highlightedParcelLayer.bringToFront();
+        }
+
+        document.getElementById('search-global').addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter') return;
+            const v = e.target.value.trim().toUpperCase();
+            if (!originalGeoData || v === "") return;
+
+            if (/^\d+$/.test(v)) {
+                const wfsUrl = `${GEOSERVER_WFS_URL}?service=WFS&version=1.1.0&request=GetFeature&typeName=${PARCEL_LAYER_NAME}&outputFormat=application/json&srsName=EPSG:4326&cql_filter=padronmuni='${v}'`;
+                fetch(wfsUrl)
+                    .then(r => r.json())
+                    .then(geojson => {
+                        if (geojson.features && geojson.features.length > 0) {
+                            const parcel = geojson.features[0];
+                            highlightParcel(parcel);
+                            const tempLayer = L.geoJSON(parcel);
+                            map.fitBounds(tempLayer.getBounds(), { maxZoom: 18, padding: [40, 40] });
+                            const matchedZones = findZonesForParcel(parcel);
+                            inspectFeature(matchedZones.length > 0 ? matchedZones[0].props : null, parcel.properties, matchedZones);
+                        } else {
+                            alert("Padrón no encontrado en el servidor catastral.");
+                        }
+                    }).catch(err => alert("Error de comunicación con el GeoServer."));
+            } else {
+                const filtered = originalGeoData.features.filter(feat => 
+                    (feat.properties.codigo && feat.properties.codigo.toUpperCase().includes(v)) ||
+                    (feat.properties.zona_ && feat.properties.zona_.toUpperCase().includes(v))
+                );
+                renderGeoJSON({ type: "FeatureCollection", features: filtered });
+            }
+        });
+
+        function processLandUses(zoneCode, keyword = "") {
+            document.getElementById('usos-zona-titulo').innerText = zoneCode;
+            
+            const divPerm = document.getElementById('list-permitidos');
+            const divCond = document.getElementById('list-condicionados');
+            const divProh = document.getElementById('list-prohibidos');
+            
+            divPerm.innerHTML = ""; divCond.innerHTML = ""; divProh.innerHTML = "";
+
+            if (!csvData || csvData.length === 0) return;
+            const normalizedZone = zoneCode.trim().toUpperCase();
+
+            const groupsPerm = {}, groupsCond = {}, groupsProh = {};
+            let totalValidos = 0;
+            let countPerm = 0, countCond = 0, countProh = 0;
+
+            csvData.forEach(row => {
+                const destino = row['DESTINO'] || '';
+                const rubroGeneral = (row['USO'] || 'GENERAL').trim().toUpperCase();
+                const valorRegulacion = (row[normalizedZone] || '').trim();
+                const ueaValor = (row['UEA'] || '').trim().toUpperCase();
+                const tieneUEA = ueaValor === 'SI' || ueaValor === 'SÍ' || ueaValor === 'TRUE' || ueaValor === '1';
+
+                if (!destino) return;
+                if (keyword && !destino.toUpperCase().includes(keyword.toUpperCase()) && !rubroGeneral.includes(keyword.toUpperCase())) { 
+                    return; 
+                }
+
+                totalValidos++;
+
+                // ItemHtml rediseñado con texto explícito slate-800 para legibilidad total en fondo claro
+                const itemHtml = `
+                    <div class="p-2 mb-1 bg-slate-100 dark:bg-slate-800/40 rounded border border-slate-200 dark:border-slate-700/60 flex items-center justify-between gap-3 text-[11px]">
+                        <span class="font-semibold text-slate-800 dark:text-slate-200 leading-snug">${destino}</span>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            ${valorRegulacion !== '1' && valorRegulacion !== '3' && valorRegulacion !== '' 
+                                ? `<span class="bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border border-amber-500/40">Art. ${valorRegulacion}</span>` 
+                                : ''
+                            }
+                            ${tieneUEA 
+                                ? `<span class="bg-teal-500/10 text-teal-700 dark:text-teal-400 text-[9px] font-bold px-1.5 py-0.5 rounded border border-teal-500/30 flex items-center gap-1"><i class="fa-solid fa-leaf text-[8px]"></i> UEA</span>` 
+                                : ''
+                            }
+                        </div>
+                    </div>`;
+
+                if (valorRegulacion === '1') {
+                    if (!groupsPerm[rubroGeneral]) groupsPerm[rubroGeneral] = [];
+                    groupsPerm[rubroGeneral].push(itemHtml);
+                    countPerm++;
+                } else if (valorRegulacion === '3') {
+                    if (!groupsProh[rubroGeneral]) groupsProh[rubroGeneral] = [];
+                    groupsProh[rubroGeneral].push(itemHtml);
+                    countProh++;
+                } else if (valorRegulacion !== '') {
+                    if (!groupsCond[rubroGeneral]) groupsCond[rubroGeneral] = [];
+                    groupsCond[rubroGeneral].push(itemHtml);
+                    countCond++;
+                }
+            });
+
+            const pctPerm = totalValidos > 0 ? Math.round((countPerm / totalValidos) * 100) : 0;
+            const pctCond = totalValidos > 0 ? Math.round((countCond / totalValidos) * 100) : 0;
+            const pctProh = totalValidos > 0 ? Math.round((countProh / totalValidos) * 100) : 0;
+
+            document.getElementById('pct-permitidos').innerText = `${pctPerm}%`;
+            document.getElementById('pct-condicionados').innerText = `${pctCond}%`;
+            document.getElementById('pct-prohibidos').innerText = `${pctProh}%`;
+
+            document.getElementById('bar-permitidos').style.width = `${pctPerm}%`;
+            document.getElementById('bar-condicionados').style.width = `${pctCond}%`;
+            document.getElementById('bar-prohibidos').style.width = `${pctProh}%`;
+
+            document.getElementById('morf-count-permitidos').innerText = countPerm;
+            document.getElementById('morf-count-condicionados').innerText = countCond;
+            document.getElementById('morf-count-prohibidos').innerText = countProh;
+
+            document.getElementById('btn-count-permitidos').innerText = Object.keys(groupsPerm).length;
+            document.getElementById('btn-count-condicionados').innerText = Object.keys(groupsCond).length;
+            document.getElementById('btn-count-prohibidos').innerText = Object.keys(groupsProh).length;
+
+            function renderGroupedAccordions(groups, container) {
+                const rubros = Object.keys(groups).sort();
+                if (rubros.length === 0) {
+                    container.innerHTML = `<div class="p-4 text-center text-slate-400 dark:text-slate-500 text-xs italic">Ninguna actividad registrada bajo esta condición.</div>`;
+                    return;
+                }
+
+                rubros.forEach((rubro) => {
+                    const randomId = `accordion-${Math.random().toString(36).substr(2, 9)}`;
+                    const itemsCount = groups[rubro].length;
+                    
+                    const accordionHtml = `
+                        <div class="border border-slate-200 dark:border-slate-800 rounded overflow-hidden mb-2 theme-card transition shadow-sm">
+                            <button onclick="document.getElementById('${randomId}').classList.toggle('hidden')" 
+                                    class="w-full p-2.5 flex items-center justify-between bg-slate-200/50 dark:bg-slate-800/60 hover:bg-slate-300/40 dark:hover:bg-slate-700/40 transition text-left cursor-pointer">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-folder text-[#ffbf00] text-xs"></i>
+                                    <span class="font-black text-[11px] tracking-wider uppercase text-slate-700 dark:text-slate-200">${rubro}</span>
+                                </div>
+                                <span class="bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                    ${itemsCount} ${itemsCount === 1 ? 'destino' : 'destinos'}
+                                </span>
+                            </button>
+                            <div id="${randomId}" class="hidden p-2 space-y-1 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+                                ${groups[rubro].join('')}
+                            </div>
+                        </div>`;
+                    
+                    container.insertAdjacentHTML('beforeend', accordionHtml);
+                });
+            }
+
+            renderGroupedAccordions(groupsPerm, divPerm);
+            renderGroupedAccordions(groupsCond, divCond);
+            renderGroupedAccordions(groupsProh, divProh);
+
+            if (keyword) {
+                divPerm.classList.remove('hidden'); divCond.classList.remove('hidden'); divProh.classList.remove('hidden');
+                document.querySelectorAll('[id^="accordion-"]').forEach(el => el.classList.remove('hidden'));
+            }
+        }
+
+        document.getElementById('search-activity').addEventListener('input', (e) => {
+            if (selectedZoneCode) processLandUses(selectedZoneCode, e.target.value.trim());
+        });
+
+        document.getElementById('btn-clear-filters').addEventListener('click', () => {
+            if (!originalGeoData) return;
+            document.getElementById('search-global').value = "";
+            document.getElementById('search-activity').value = "";
+
+            renderGeoJSON(originalGeoData);
+            if (highlightedParcelLayer) { map.removeLayer(highlightedParcelLayer); }
+            selectedZoneCode = null;
+
+            document.getElementById('inspector-placeholder').classList.remove('hidden');
+            document.getElementById('panel-morfologia').classList.add('hidden');
+            document.getElementById('panel-usos').classList.add('hidden');
+            document.getElementById('ficha-catastral').classList.add('hidden');
+            document.getElementById('btn-tab-morfologia').click();
+
+            if (geojsonLayer) { const b = geojsonLayer.getBounds(); if (b.isValid()) map.fitBounds(b, { padding: [30, 30] }); }
+        });
+
+        function buildStatistics(geojson) {
+            const features = geojson.features; document.getElementById('kpi-count').innerText = features.length;
+            let area = 0; features.forEach(f => { if (f.properties.sup_m2) area += Number(f.properties.sup_m2); });
+            document.getElementById('kpi-area').innerText = `${Number((area/10000).toFixed(0)).toLocaleString('es-AR')} ha`;
+        }
+    </script>
+</body>
+</html>
