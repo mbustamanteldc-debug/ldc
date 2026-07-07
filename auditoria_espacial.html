@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Auditoría de Tablas Espaciales — IDE Luján de Cuyo</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #2c3e50; line-height: 1.6; }
+
+  header {
+    background: linear-gradient(135deg, #1F4E79, #2980b9);
+    color: white; padding: 40px 60px;
+  }
+  header h1 { font-size: 2em; margin-bottom: 6px; }
+  header p { opacity: 0.85; font-size: 0.95em; }
+  header .meta { margin-top: 14px; font-size: 0.85em; opacity: 0.75; }
+
+  nav {
+    background: #1a3a5c;
+    padding: 12px 60px;
+    display: flex; gap: 20px; flex-wrap: wrap;
+  }
+  nav a { color: #a8d4f5; text-decoration: none; font-size: 0.88em; }
+  nav a:hover { color: white; }
+
+  main { max-width: 1000px; margin: 40px auto; padding: 0 30px 60px; }
+
+  section { background: white; border-radius: 8px; padding: 32px; margin-bottom: 28px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+
+  h2 { font-size: 1.35em; color: #1F4E79; border-left: 5px solid #2980b9; padding-left: 14px; margin-bottom: 18px; }
+  h3 { font-size: 1.05em; color: #1D6A38; margin: 22px 0 10px; }
+
+  p { margin-bottom: 12px; font-size: 0.95em; }
+
+  pre {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    padding: 18px 20px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.82em;
+    line-height: 1.6;
+    margin: 12px 0;
+  }
+  .kw { color: #89b4fa; }
+  .fn { color: #a6e3a1; }
+  .str { color: #f9e2af; }
+  .cm { color: #6c7086; font-style: italic; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.88em; }
+  thead tr { background: #1F4E79; color: white; }
+  th, td { padding: 10px 14px; text-align: left; border: 1px solid #dde; }
+  tbody tr:nth-child(even) { background: #f0f4f8; }
+  tbody tr:hover { background: #dbeafe; }
+
+  .nota {
+    background: #e8f5e9;
+    border-left: 5px solid #1D6A38;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin: 14px 0;
+    font-size: 0.88em;
+  }
+  .nota strong { color: #1D6A38; }
+
+  .alerta {
+    background: #fff8e1;
+    border-left: 5px solid #f59e0b;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin: 14px 0;
+    font-size: 0.88em;
+  }
+
+  .badge {
+    display: inline-block;
+    background: #1F4E79;
+    color: white;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.78em;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  footer { text-align: center; font-size: 0.8em; color: #888; padding: 20px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sistema de Auditoría de Tablas Espaciales</h1>
+  <p>Infraestructura de Datos Espaciales — Municipalidad de Luján de Cuyo</p>
+  <div class="meta">Fecha de implementación: Julio 2026 &nbsp;|&nbsp; Responsable: Mercedes — Área IDE Municipal &nbsp;|&nbsp; Base de datos: db_catastro (PostgreSQL/PostGIS)</div>
+</header>
+
+<nav>
+  <a href="#objetivo">Objetivo</a>
+  <a href="#arquitectura">Arquitectura</a>
+  <a href="#tabla">Tabla de auditoría</a>
+  <a href="#funcion">Función trigger</a>
+  <a href="#triggers">Triggers</a>
+  <a href="#permisos">Permisos</a>
+  <a href="#nueva-tabla">Nueva tabla</a>
+  <a href="#verificaciones">Verificaciones</a>
+  <a href="#consultas">Consultas</a>
+  <a href="#notas">Notas</a>
+</nav>
+
+<main>
+
+  <section id="objetivo">
+    <h2>1. Objetivo</h2>
+    <p>Registrar automáticamente quién modifica las tablas espaciales, cuándo y qué registro fue afectado. Permite conocer la frecuencia de actualización de cada capa por parte de las distintas áreas municipales.</p>
+    <p>El sistema utiliza triggers de PostgreSQL que se disparan automáticamente ante cualquier INSERT, UPDATE o DELETE, sin requerir intervención manual.</p>
+  </section>
+
+  <section id="arquitectura">
+    <h2>2. Arquitectura del sistema</h2>
+    <table>
+      <thead><tr><th>Componente</th><th>Nombre</th><th>Esquema</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td>Tabla de auditoría</td><td><code>auditoria_tablas</code></td><td>sc_catastro</td><td>Almacena todos los registros de cambios</td></tr>
+        <tr><td>Función trigger</td><td><code>fn_auditar_tabla()</code></td><td>sc_catastro</td><td>Función universal reutilizable para todas las tablas</td></tr>
+        <tr><td>Trigger luminarias</td><td><code>trg_luminarias_auditoria</code></td><td>servicios</td><td>Sobre <code>luminarias_26052026</code></td></tr>
+        <tr><td>Trigger loteos</td><td><code>trg_loteos_auditoria</code></td><td>sc_catastro</td><td>Sobre <code>loteos_definitivos_11032024</code></td></tr>
+        <tr><td>Trigger red vial</td><td><code>trg_red_vial_auditoria</code></td><td>sc_base</td><td>Sobre <code>RED_VIAL</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="tabla">
+    <h2>3. Estructura de la tabla de auditoría</h2>
+    <table>
+      <thead><tr><th>Columna</th><th>Tipo</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>SERIAL</td><td>Clave primaria autoincremental</td></tr>
+        <tr><td><code>schema_name</code></td><td>TEXT</td><td>Esquema de la tabla modificada</td></tr>
+        <tr><td><code>table_name</code></td><td>TEXT</td><td>Nombre de la tabla modificada</td></tr>
+        <tr><td><code>user_name</code></td><td>TEXT</td><td>Usuario de PostgreSQL que realizó el cambio</td></tr>
+        <tr><td><code>action_time</code></td><td>TIMESTAMP</td><td>Fecha y hora exacta del cambio</td></tr>
+        <tr><td><code>action</code></td><td>TEXT</td><td>Tipo de operación: INSERT, UPDATE o DELETE</td></tr>
+        <tr><td><code>original_data</code></td><td>TEXT</td><td>Datos anteriores (JSON o texto)</td></tr>
+        <tr><td><code>new_data</code></td><td>TEXT</td><td>Datos nuevos (JSON o texto)</td></tr>
+        <tr><td><code>registro_id</code></td><td>BIGINT</td><td>ID del registro afectado en la tabla original</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Script de creación</h3>
+<pre><span class="kw">CREATE TABLE IF NOT EXISTS</span> sc_catastro.auditoria_tablas (
+    id            <span class="kw">SERIAL PRIMARY KEY</span>,
+    schema_name   <span class="kw">TEXT NOT NULL</span>,
+    table_name    <span class="kw">TEXT NOT NULL</span>,
+    user_name     <span class="kw">TEXT DEFAULT</span> current_user,
+    action_time   <span class="kw">TIMESTAMP WITH TIME ZONE DEFAULT</span> clock_timestamp(),
+    action        <span class="kw">TEXT NOT NULL</span>,  <span class="cm">-- 'INSERT', 'UPDATE' o 'DELETE'</span>
+    original_data <span class="kw">TEXT</span>,
+    new_data      <span class="kw">TEXT</span>,
+    registro_id   <span class="kw">BIGINT</span>
+);</pre>
+  </section>
+
+  <section id="funcion">
+    <h2>4. Función trigger universal</h2>
+    <p>La función es universal: un solo objeto maneja la auditoría de todas las tablas. Las variables <code>TG_TABLE_NAME</code> y <code>TG_TABLE_SCHEMA</code> capturan automáticamente el contexto de ejecución.</p>
+<pre><span class="kw">CREATE OR REPLACE FUNCTION</span> sc_catastro.<span class="fn">fn_auditar_tabla</span>()
+<span class="kw">RETURNS TRIGGER AS</span> $$
+<span class="kw">BEGIN</span>
+    <span class="kw">IF</span> TG_OP = <span class="str">'DELETE'</span> <span class="kw">THEN</span>
+        <span class="kw">INSERT INTO</span> sc_catastro.auditoria_tablas
+            (schema_name, table_name, user_name, action_time, action, registro_id)
+        <span class="kw">VALUES</span>
+            (TG_TABLE_SCHEMA, TG_TABLE_NAME, current_user, NOW(), TG_OP, OLD.id);
+    <span class="kw">ELSE</span>
+        <span class="kw">INSERT INTO</span> sc_catastro.auditoria_tablas
+            (schema_name, table_name, user_name, action_time, action, registro_id)
+        <span class="kw">VALUES</span>
+            (TG_TABLE_SCHEMA, TG_TABLE_NAME, current_user, NOW(), TG_OP, NEW.id);
+    <span class="kw">END IF</span>;
+    <span class="kw">RETURN NEW</span>;
+<span class="kw">END</span>;
+$$ <span class="kw">LANGUAGE</span> plpgsql;</pre>
+    <div class="nota"><strong>Nota:</strong> <code>OLD.id</code> se usa para DELETE porque el registro ya no existe. <code>NEW.id</code> se usa para INSERT y UPDATE.</div>
+  </section>
+
+  <section id="triggers">
+    <h2>5. Creación de triggers</h2>
+
+    <h3>Trigger — Luminarias <span class="badge">servicios</span></h3>
+<pre><span class="kw">DROP TRIGGER IF EXISTS</span> trg_luminarias_auditoria <span class="kw">ON</span> servicios.luminarias_26052026;
+<span class="kw">CREATE TRIGGER</span> trg_luminarias_auditoria
+<span class="kw">AFTER INSERT OR UPDATE OR DELETE</span>
+<span class="kw">ON</span> servicios.luminarias_26052026
+<span class="kw">FOR EACH ROW EXECUTE FUNCTION</span> sc_catastro.<span class="fn">fn_auditar_tabla</span>();</pre>
+
+    <h3>Trigger — Loteos <span class="badge">sc_catastro</span></h3>
+<pre><span class="kw">DROP TRIGGER IF EXISTS</span> trg_loteos_auditoria <span class="kw">ON</span> sc_catastro.loteos_definitivos_11032024;
+<span class="kw">CREATE TRIGGER</span> trg_loteos_auditoria
+<span class="kw">AFTER INSERT OR UPDATE OR DELETE</span>
+<span class="kw">ON</span> sc_catastro.loteos_definitivos_11032024
+<span class="kw">FOR EACH ROW EXECUTE FUNCTION</span> sc_catastro.<span class="fn">fn_auditar_tabla</span>();</pre>
+
+    <h3>Trigger — Red Vial <span class="badge">sc_base</span></h3>
+<pre><span class="kw">DROP TRIGGER IF EXISTS</span> trg_red_vial_auditoria <span class="kw">ON</span> sc_base.<span class="str">"RED_VIAL"</span>;
+<span class="kw">CREATE TRIGGER</span> trg_red_vial_auditoria
+<span class="kw">AFTER INSERT OR UPDATE OR DELETE</span>
+<span class="kw">ON</span> sc_base.<span class="str">"RED_VIAL"</span>
+<span class="kw">FOR EACH ROW EXECUTE FUNCTION</span> sc_catastro.<span class="fn">fn_auditar_tabla</span>();</pre>
+
+    <div class="nota"><strong>Importante:</strong> Las tablas con nombres en MAYÚSCULAS (como <code>RED_VIAL</code>) requieren comillas dobles. Las tablas en esquemas distintos a <code>public</code> requieren el prefijo <code>esquema.tabla</code>.</div>
+    <div class="alerta"><strong>Tip DBeaver:</strong> Si se produce un error de transacción, ejecutar <code>ROLLBACK;</code> antes de volver a correr los scripts.</div>
+  </section>
+
+  <section id="permisos">
+    <h2>6. Permisos necesarios</h2>
+    <p>Si el rol que edita desde QGIS no puede insertar en la tabla de auditoría, otorgar permisos:</p>
+<pre><span class="cm">-- Reemplazar 'catastro' con el nombre del rol correspondiente</span>
+<span class="kw">GRANT INSERT ON</span> sc_catastro.auditoria_tablas <span class="kw">TO</span> catastro;
+<span class="kw">GRANT USAGE, SELECT ON SEQUENCE</span> sc_catastro.auditoria_tablas_id_seq <span class="kw">TO</span> catastro;</pre>
+  </section>
+
+  <section id="nueva-tabla">
+    <h2>7. Agregar una nueva tabla al sistema</h2>
+    <p>Para auditar una nueva tabla, solo se necesita crear el trigger. No hace falta crear una nueva función ni una nueva tabla de auditoría.</p>
+<pre><span class="kw">DROP TRIGGER IF EXISTS</span> trg_NOMBRETABLA_auditoria <span class="kw">ON</span> esquema.NOMBRETABLA;
+<span class="kw">CREATE TRIGGER</span> trg_NOMBRETABLA_auditoria
+<span class="kw">AFTER INSERT OR UPDATE OR DELETE</span>
+<span class="kw">ON</span> esquema.NOMBRETABLA
+<span class="kw">FOR EACH ROW EXECUTE FUNCTION</span> sc_catastro.<span class="fn">fn_auditar_tabla</span>();</pre>
+    <div class="nota"><strong>Nota:</strong> Si la nueva tabla tiene su columna ID con un nombre distinto a <code>id</code> (por ejemplo <code>gid</code> o <code>objectid</code>), actualizar la función para que use el nombre correcto.</div>
+  </section>
+
+  <section id="verificaciones">
+    <h2>8. Verificaciones</h2>
+    <h3>Confirmar que los triggers apuntan al esquema correcto</h3>
+<pre><span class="kw">SELECT</span> t.tgname <span class="kw">AS</span> trigger_name,
+       p.pronamespace::regnamespace <span class="kw">AS</span> funcion_esquema,
+       p.proname <span class="kw">AS</span> funcion_nombre
+<span class="kw">FROM</span> pg_trigger t
+<span class="kw">JOIN</span> pg_proc p <span class="kw">ON</span> t.tgfoid = p.oid
+<span class="kw">JOIN</span> pg_class c <span class="kw">ON</span> t.tgrelid = c.oid
+<span class="kw">WHERE</span> t.tgname <span class="kw">IN</span> (
+    <span class="str">'trg_luminarias_auditoria'</span>,
+    <span class="str">'trg_loteos_auditoria'</span>,
+    <span class="str">'trg_red_vial_auditoria'</span>
+);</pre>
+  </section>
+
+  <section id="consultas">
+    <h2>9. Consultas de uso cotidiano</h2>
+
+    <h3>Última actividad por tabla</h3>
+<pre><span class="kw">SELECT</span> table_name, action, user_name, <span class="fn">MAX</span>(action_time) <span class="kw">AS</span> ultima_vez
+<span class="kw">FROM</span> sc_catastro.auditoria_tablas
+<span class="kw">GROUP BY</span> table_name, action, user_name
+<span class="kw">ORDER BY</span> ultima_vez <span class="kw">DESC</span>;</pre>
+
+    <h3>¿Cuándo tocaron una tabla específica?</h3>
+<pre><span class="kw">SELECT</span> <span class="fn">MAX</span>(action_time) <span class="kw">AS</span> ultima_actualizacion
+<span class="kw">FROM</span> sc_catastro.auditoria_tablas
+<span class="kw">WHERE</span> table_name = <span class="str">'RED_VIAL'</span>;</pre>
+
+    <h3>¿Qué IDs se modificaron en loteos?</h3>
+<pre><span class="kw">SELECT</span> registro_id, action, user_name, action_time
+<span class="kw">FROM</span> sc_catastro.auditoria_tablas
+<span class="kw">WHERE</span> table_name = <span class="str">'loteos_definitivos_11032024'</span>
+<span class="kw">ORDER BY</span> action_time <span class="kw">DESC</span>;</pre>
+
+    <h3>Resumen mensual de actividad</h3>
+<pre><span class="kw">SELECT</span>
+    table_name,
+    <span class="fn">DATE_TRUNC</span>(<span class="str">'month'</span>, action_time) <span class="kw">AS</span> mes,
+    action,
+    <span class="fn">COUNT</span>(*) <span class="kw">AS</span> cantidad_filas
+<span class="kw">FROM</span> sc_catastro.auditoria_tablas
+<span class="kw">GROUP BY</span> table_name, mes, action
+<span class="kw">ORDER BY</span> mes <span class="kw">DESC</span>, table_name;</pre>
+
+    <h3>¿Quién actualizó y cuántas veces?</h3>
+<pre><span class="kw">SELECT</span>
+    table_name,
+    user_name,
+    action,
+    <span class="fn">COUNT</span>(*)         <span class="kw">AS</span> veces,
+    <span class="fn">MIN</span>(action_time) <span class="kw">AS</span> primera_vez,
+    <span class="fn">MAX</span>(action_time) <span class="kw">AS</span> ultima_vez
+<span class="kw">FROM</span> sc_catastro.auditoria_tablas
+<span class="kw">GROUP BY</span> table_name, user_name, action
+<span class="kw">ORDER BY</span> ultima_vez <span class="kw">DESC</span>;</pre>
+  </section>
+
+  <section id="notas">
+    <h2>10. Notas importantes</h2>
+    <div class="nota"><strong>Tabla vacía:</strong> La tabla <code>auditoria_tablas</code> estará vacía hasta que alguien modifique una de las tablas auditadas — es el comportamiento esperado.</div>
+    <div class="nota"><strong>Historial previo:</strong> Los registros anteriores a la implementación del sistema no quedan registrados — solo se registran cambios desde la fecha de instalación.</div>
+    <div class="nota"><strong>Error de transacción:</strong> Si se produce un error en DBeaver, ejecutar <code>ROLLBACK;</code> antes de volver a correr los scripts.</div>
+    <div class="nota"><strong>Columna ID:</strong> El campo <code>registro_id</code> captura el <code>id</code> de la fila afectada. Si la tabla auditada usa otro nombre de columna como clave (<code>gid</code>, <code>objectid</code>, etc.), actualizar la función acordemente.</div>
+  </section>
+
+</main>
+
+<footer>IDE Municipal — Municipalidad de Luján de Cuyo &nbsp;|&nbsp; Documentación técnica interna &nbsp;|&nbsp; Julio 2026</footer>
+
+</body>
+</html>
